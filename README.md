@@ -1,1 +1,1 @@
-# AI-Driven-Event-Discovery-and-Community-Expansion
+# AI Driven Event Discovery and Community Expansion
