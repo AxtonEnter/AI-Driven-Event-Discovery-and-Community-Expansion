@@ -42,6 +42,7 @@ jobs:
           mkdir ./out
 
       - name: Upload artifact
+        if: always()
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
