@@ -39,7 +39,8 @@ jobs:
       - name: Build with Next.js
         run: |
           npx next build
-          mkdir ./out
+          ls
+          ls out
 
       - name: Upload artifact
         if: always()
