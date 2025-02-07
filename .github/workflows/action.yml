@@ -3,6 +3,13 @@ name: setup-node
 description: "Setup Node.js for Pages source"
 on:
   push
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./docs/app
+
+
 jobs:
   setup-node:
     runs-on: 'ubuntu-latest'
@@ -23,5 +30,4 @@ jobs:
         shell: bash
         if: steps.cache_dependencies.outputs.cache-hit != 'true'
         run: |
-          cd docs/app
           npm ci
