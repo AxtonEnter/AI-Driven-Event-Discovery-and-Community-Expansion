@@ -39,6 +39,7 @@ jobs:
       - name: Build with Next.js
         run: |
           npx next build
+          mkdir ./out
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
