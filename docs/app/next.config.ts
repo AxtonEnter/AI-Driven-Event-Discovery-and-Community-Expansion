@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: "",
+  basePath: "/AI-Driven-Event-Discovery-and-Community-Expansion",
   output: "export", 
   reactStrictMode: true,
 };
