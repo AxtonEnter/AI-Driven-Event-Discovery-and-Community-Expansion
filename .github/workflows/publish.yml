@@ -39,17 +39,12 @@ jobs:
       - name: Build with Next.js
         run: |
           npx next build
-
-      - name: check dir
-        run: |
-          ls
           
-
       - name: Upload artifact
         if: always()
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./out
+          path: ./docs/app/out
 
   deploy:
     environment:
