@@ -10,8 +10,6 @@ defaults:
 
 runs:
   using: "composite"
-  shell: bash
-  working-directory: ./docs/app
   steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -32,4 +30,6 @@ runs:
       shell: bash
       if: steps.cache_dependencies.outputs.cache-hit != 'true'
       run: |
+        ls
+        cd ./docs/app
         npm ci
