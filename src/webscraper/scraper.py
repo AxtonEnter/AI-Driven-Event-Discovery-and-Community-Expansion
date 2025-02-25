@@ -27,21 +27,24 @@ def init_driver():
     return driver
 
 
-def crawlSiteSeq(url, rootUrl, visited=None, driver=None, sleepTime=1):
+def crawlSiteSeq(url, rootUrl, visited=None, driver=None, maxPages=100, sleepTime=1):
     """
     Crawls a website recursivley using Selenium and returns a list of visited URLs.
     """
-
-    # Sleep before each connection
-    time.sleep(sleepTime)
-
     # Initialize visited set
     if visited is None:  
         visited = set()
     
+    # Page Limit Check
+    if len(visited) >= maxPages:
+        return []
+    
     # Return on already visited url (before attempting to connect)
     if url in visited:  
         return []
+
+    # Sleep before each connection
+    time.sleep(sleepTime)
 
     # Debug
     print(url)
@@ -63,7 +66,6 @@ def crawlSiteSeq(url, rootUrl, visited=None, driver=None, sleepTime=1):
     # image_tags = soup.find_all('img')
     # image_urls = [img['src'] for img in image_tags]
 
-
     # For each link, convert partial urls to full and check if its on root site
     # If so: create a recursive call to crawl the url
     for link in soup.find_all('a', href=True):
@@ -71,7 +73,7 @@ def crawlSiteSeq(url, rootUrl, visited=None, driver=None, sleepTime=1):
         full_url = urljoin(rootUrl, href)
 
         if full_url.startswith(rootUrl) and full_url not in visited:
-            crawlSiteSeq(full_url, rootUrl, visited, driver)
+            crawlSiteSeq(full_url, rootUrl, visited, driver, maxPages, sleepTime)
     
     return visited
 
@@ -81,7 +83,7 @@ def main(start_url, root_url):
     """Entry point to start crawling the website using Selenium."""
     driver = init_driver()  # Initialize Selenium WebDriver
     try:
-        pages = crawlSiteSeq(start_url, root_url, visited=set(), driver=driver) # Seq
+        pages = crawlSiteSeq(start_url, root_url, driver=driver, maxPages=100, sleepTime=0.1) # Seq
         print(f"\nTotal pages found: {len(pages)}")
         return pages
     finally:
@@ -97,5 +99,5 @@ if __name__ == "__main__":
 
     # These example sites have a low amount of pages (7-30)
     # Example 3 (https://rochester.kidsoutandabout.com/) will often put too much load on the server
-    example = 1
+    example = 0
     main(url_examples[example], url_examples[example])
