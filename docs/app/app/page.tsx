@@ -159,7 +159,7 @@ export default function Home() {
 
             <Box>
                 <Paper elevation={3} sx={{mr: 20, p: 3, mb: 3, ml: 5}}>
-                    <Image priority src={DomainModelSVG} alt="Domain Model" />
+                    <Image priority src={DomainModelSVG} alt="Domain Model" style={{maxWidth: "100%"}} />
                 </Paper>
             </Box>
 
