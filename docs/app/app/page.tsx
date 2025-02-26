@@ -1,8 +1,9 @@
-import { Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Stack, Card, CardHeader, Chip, Paper } from "@mui/material";
+import { Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Stack, Card, CardHeader, Chip, Paper, TableContainer, Table, TableHead, TableBody, TableCell, TableRow } from "@mui/material";
 import { Page } from "./common/Page";
 import WorkIcon from '@mui/icons-material/Work';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import TeamCard from "./common/TeamCard";
+import Markdown from "react-markdown";
 
 
 export default function Home() {
@@ -66,25 +67,98 @@ export default function Home() {
             <Typography variant='h4' mt={5} mb={2}>Development Methodology</Typography>
 
             <Box>
-                <Typography variant="body2">
-                    In progress! Coming soon.
-                </Typography>
+                <Paper elevation={3} sx={{mr: 20, p: 3, mb: 3, ml: 5}}>
+                    <Markdown>{`
+# Development Methodology
+
+## Scrum / Agile
+
+* 2 week sprints  
+* Sprints will be planned utilizing GitHub Projects  
+* Each sprint will have the same structure:  
+  * 1st meeting of the sprint \- every other Friday \- will serve as the planning meeting where we define goals and assign roles and responsibilities  
+  * Each subsequent meeting will double as a standup, checking in on progress to see where the team is  
+  * The following Wednesday, we will have our half sprint check in with the product owner (sponsor) and coach to see where we are and ensure that we are headed in the right direction  
+  * A week later \- the next Wednesday meeting with the product owner and coach \- will serve as a sprint wrap up and retrospective, where we show the completed artifacts of the previous sprint, get feedback, and align ourselves for the next sprint  
+* Roles:  
+  * Product Owner \- Sponsor  
+  * Scrum Master \- TBD  
+  * Dev team \- Students  
+* Each artifact to be completed will be organized into a user story that contains the following:  
+  * Artifact name  
+  * Who is assigned to the user story  
+  * Story Points \- more on these in a second  
+  * A description of functionality \- ex: As a \_\_ I want \_\_ so that \_\_.  
+  * Definition of done \- checklist of items that is filled out as work is completed  
+  * Acceptance criteria \- items that a tester checks off to ensure correct functionality of the system \- ex: Given \_\_, when I \_\_ then I \_\_.  
+* Metrics and Measurements:  
+  * User stories and individual artifacts will each be given a “Story Point” value, either 1, 2, 3, or 5 ranging on the perceived difficulty of the task  
+  * Each sprint, we will plan out how many tasks we can do based on the amount of story points added up in a sprint, or the “velocity” of a sprint  
+  * As we go along and understand our workload and ability, this velocity will be adjusted accordingly  
+* Individual user stories and features will be organized into the following buckets:  
+  * Product Backlog \- planned artifacts for the entire project  
+  * To-do \- artifacts planned to be completed for the sprint  
+  * In-progress \- artifacts that are currently being developed  
+  * In-review \- artifacts that need to be checked before being marked complete  
+  * Complete \- artifacts that are finished 
+                    `}</Markdown>
+                </Paper>
             </Box>
 
             <Typography variant='h4' mt={5} mb={2}>Metrics</Typography>
 
             <Box>
-                <Typography variant="body2">
-                    In progress! Coming soon.
-                </Typography>
+                <Paper elevation={3} sx={{mr: 20, p: 3, mb: 3, ml: 5}}>
+                    <TableContainer>
+                        <Table>
+                            <TableHead>
+                                <TableCell>Metric</TableCell>
+                                <TableCell>Summary</TableCell>
+                                <TableCell>Type</TableCell>
+                            </TableHead>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell>Story Points</TableCell>
+                                    <TableCell>A story is given some number of points depending on how much work is required. </TableCell>
+                                    <TableCell>Progress</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Velocity</TableCell>
+                                    <TableCell>The amount of Story Points the team or specific developer can complete in a sprint.</TableCell>
+                                    <TableCell>Progress</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Code Coverage</TableCell>
+                                    <TableCell>The amount of code that is covered in testing.</TableCell>
+                                    <TableCell>Activity</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Scope Added</TableCell>
+                                    <TableCell>Accounts for the total number of story points added after the sprint commencement. If the scope added percentage is high it would indicate that there are issues with how we are planning our sprints.</TableCell>
+                                    <TableCell>Effort</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Code Churn</TableCell>
+                                    <TableCell>The overall changes within your code base, most significantly the code added, modified, or removed throughout the development life cycle.</TableCell>
+                                    <TableCell>Activity</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Defect Density</TableCell>
+                                    <TableCell>Number of errors per KLOC, page, use case.</TableCell>
+                                    <TableCell>Defect</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Paper>
             </Box>
 
             <Typography variant='h4' mt={5} mb={2}>Domain Model</Typography>
 
             <Box>
-                <Typography variant="body2">
-                    In progress! Coming soon.
-                </Typography>
+                <Paper elevation={3} sx={{mr: 20, p: 3, mb: 3, ml: 5}}>
+                    <img src="..\public\domain_model_1.svg" />
+                </Paper>
             </Box>
 
         </Page>
