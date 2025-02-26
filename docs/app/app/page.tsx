@@ -39,12 +39,12 @@ export default function Home() {
                 <Box ml={5}>
                     <Stack direction={"row"} flexWrap={'wrap'} maxWidth={600} justifyContent={"left"}>
                         <TeamCard name={"JD Bartholomew"} role={"Project Manager"} chipColor={"primary"} />
-                        <TeamCard name={"Alec Haag"} role={"Communication Lead"} chipColor={"warning"} />
-                        <TeamCard name={"Chris Shepard"} role={"Developer"} chipColor={"secondary"} />
-                        <TeamCard name={"Jahmir Hinds"} role={"Developer"} chipColor={"secondary"} />
-                        <TeamCard name={"Joe Wesnofske"} role={"Developer"} chipColor={"secondary"} />
-                        <TeamCard name={"Eva Stoddard"} role={"Developer"} chipColor={"secondary"} />
-                        <TeamCard name={"Edward Teutle"} role={"Developer"} chipColor={"secondary"} />
+                        <TeamCard name={"Alec Haag"} role={"Documentation & Development Lead"} chipColor={"warning"} />
+                        <TeamCard name={"Chris Shepard"} role={"Communications Lead"} chipColor={"secondary"} />
+                        <TeamCard name={"Jahmir Hinds"} role={"UI/UX Lead"} chipColor={"success"} />
+                        <TeamCard name={"Joe Wesnofske"} role={"Machine Learning Architect"} chipColor={"error"} />
+                        <TeamCard name={"Eva Stoddard"} role={"Database Architect"} chipColor={"error"} />
+                        <TeamCard name={"Edward Teutle"} role={"Scrum Master"} chipColor={"info"} />
                     </Stack>
                 </Box>
             </Box>
