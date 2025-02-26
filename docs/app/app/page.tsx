@@ -4,7 +4,7 @@ import WorkIcon from '@mui/icons-material/Work';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import TeamCard from "./common/TeamCard";
 import Markdown from "react-markdown";
-import DomainModelSVG from "../assets/domain_model_1.svg"
+import DomainModelSVG from "./assets/domain_model_1.svg"
 
 
 export default function Home() {
