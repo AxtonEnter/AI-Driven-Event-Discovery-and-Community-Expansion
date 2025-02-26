@@ -157,7 +157,7 @@ export default function Home() {
 
             <Box>
                 <Paper elevation={3} sx={{mr: 20, p: 3, mb: 3, ml: 5}}>
-                    <img src="..\public\domain_model_1.svg" />
+                    <img src="../assets/domain_model_1.svg" />
                 </Paper>
             </Box>
 
