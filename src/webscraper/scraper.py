@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import time
+import zlib
 
 from playwright.sync_api import sync_playwright
 
@@ -87,15 +88,20 @@ class WebScraper:
         
         # Parse html with BeautifulSoup
         soup = BeautifulSoup(html, 'html.parser')
+        for tag in soup(["script", "style", "meta", "head", "title", "noscript"]):
+            tag.decompose()  # Remove from the tree
+        # Get the visible text
+        text = soup.get_text(separator=" ", strip=True)
 
         # Check page hash
-        soup_hash = self.hashSoup(soup)
-        print("SHA-256 Hash:", soup_hash)
-        if soup_hash == self.getSoupHash(url):
+        textHash = self.hashText(text)
+        # print("SHA-256 Hash:", textHash)
+        if textHash == self.getHash(url):
             # Page has not changed (dont send to event queue)
             pass
         else:
             # Page has changed (send to event queue)
+            compressed = zlib.compress(text.encode('utf-8'), level=-1)
             pass
 
         
@@ -114,24 +120,35 @@ class WebScraper:
         
         return visited
 
-    def hashSoup(self, soup: BeautifulSoup) -> str:
-        """Convert BeautifulSoup object to string and return its SHA-256 hash."""
-        soup_str = str(soup)
-        return hashlib.sha256(soup_str.encode()).hexdigest()
+    def hashText(self, text):
+        """Return a strings SHA-256 hash."""
+        return hashlib.sha256(text.encode()).hexdigest()
 
-    def getSoupHash(self, url):
-        """Returns the hash of the Soup for a given url stored in the database, returns False if url not previously hashed"""
+    def getHash(self, url):
+        """Returns the hash of the text for a given url stored in the database, returns False if url not previously hashed"""
         # Stored in database
         return False
 
+def textTest(url):
+    driver = PlaywrightDriver(headless=True)
+    try:
+        html = driver.get_html(url)
+        soup = BeautifulSoup(html, 'html.parser')
+        for tag in soup(["script", "style", "meta", "head", "title", "noscript"]):
+            tag.decompose()  # Remove from the tree
+        # Get the visible text
+        text = soup.get_text(separator=" ", strip=True)
+        print(text)
 
+    finally:
+        driver.close()
 
 def main(start_url, root_url):
     """Entry point to start crawling the website using Selenium."""
     # driver = initSeleniumDriver()  # Initialize Selenium WebDriver
     driver = PlaywrightDriver(headless=True)
     try:
-        scraper = WebScraper(driver, 100, 1)  # Initialize WebScraper
+        scraper = WebScraper(driver, 100, 0.5)  # Initialize WebScraper
         pages = scraper.crawlSiteSeq(start_url, root_url) # Seq
         print(f"\nTotal pages found: {len(pages)}")
         return pages
@@ -149,4 +166,5 @@ if __name__ == "__main__":
     # These example sites have a low amount of pages (7-30)
     # Example 3 (https://rochester.kidsoutandabout.com/) will often put too much load on the server
     example = 0
-    main(url_examples[example], url_examples[example])
+    # main(url_examples[example], url_examples[example])
+    textTest("https://shortsvillereindeer.com/events")
