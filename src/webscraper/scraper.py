@@ -3,50 +3,8 @@ from urllib.parse import urljoin
 import time
 import zlib
 
-from playwright.sync_api import sync_playwright
+import utils
 
-import hashlib
-
-class PlaywrightDriver:
-    def __init__(self, headless: bool = True):
-        """Initialize the Playwright driver with a browser instance."""
-        self.playwright = sync_playwright().start()
-        self.browser = self.playwright.chromium.launch(headless=headless)
-        self.page = self.browser.new_page()
-
-    def get_html(self, url: str) -> str | None:
-        """Fetch the HTML content of a webpage if it's an HTML page."""
-        
-        # First, check the Content-Type using a HEAD request
-        response = self.page.request.fetch(url, method="HEAD")
-
-        if response:
-            content_type = response.headers.get("content-type", "").lower()
-            if "text/html" not in content_type:
-                print(f"URL is not an HTML page. Detected Content-Type: {content_type}")
-                return None
-
-        # Now actually navigate to the page
-        response = self.page.goto(url, timeout=60000)
-
-        # Validate response exists
-        if not response:
-            print("Failed to load the URL.")
-            return None
-
-        # Fallback check: Ensure the page contains an <html> tag
-        page_content = self.page.content()
-        if "<html" not in page_content.lower():
-            print(f"URL is not an HTML page (fallback check).")
-            return None
-
-        return page_content  # Return HTML content
-    
-
-    def close(self):
-        """Close the browser and stop Playwright."""
-        self.browser.close()
-        self.playwright.stop()
 
 
 class WebScraper:
@@ -94,9 +52,9 @@ class WebScraper:
         text = soup.get_text(separator=" ", strip=True)
 
         # Check page hash
-        textHash = self.hashText(text)
+        textHash = utils.hashText(text)
         # print("SHA-256 Hash:", textHash)
-        if textHash == self.getHash(url):
+        if textHash == utils.getHash(url):
             # Page has not changed (dont send to event queue)
             pass
         else:
@@ -119,52 +77,4 @@ class WebScraper:
                 self.crawlSiteSeq(full_url, rootUrl, visited)
         
         return visited
-
-    def hashText(self, text):
-        """Return a strings SHA-256 hash."""
-        return hashlib.sha256(text.encode()).hexdigest()
-
-    def getHash(self, url):
-        """Returns the hash of the text for a given url stored in the database, returns False if url not previously hashed"""
-        # Stored in database
-        return False
-
-def textTest(url):
-    driver = PlaywrightDriver(headless=True)
-    try:
-        html = driver.get_html(url)
-        soup = BeautifulSoup(html, 'html.parser')
-        for tag in soup(["script", "style", "meta", "head", "title", "noscript"]):
-            tag.decompose()  # Remove from the tree
-        # Get the visible text
-        text = soup.get_text(separator=" ", strip=True)
-        print(text)
-
-    finally:
-        driver.close()
-
-def main(start_url, root_url):
-    """Entry point to start crawling the website using Selenium."""
-    # driver = initSeleniumDriver()  # Initialize Selenium WebDriver
-    driver = PlaywrightDriver(headless=True)
-    try:
-        scraper = WebScraper(driver, 100, 0.5)  # Initialize WebScraper
-        pages = scraper.crawlSiteSeq(start_url, root_url) # Seq
-        print(f"\nTotal pages found: {len(pages)}")
-        return pages
-    finally:
-        driver.close()
-
-
-if __name__ == "__main__":
-    url_examples = [
-        "https://www.punsonline.com/",
-        "https://shortsvillereindeer.com/",
-        "https://recordarchive.com/",
-        "https://rochester.kidsoutandabout.com/"]
-
-    # These example sites have a low amount of pages (7-30)
-    # Example 3 (https://rochester.kidsoutandabout.com/) will often put too much load on the server
-    example = 0
-    # main(url_examples[example], url_examples[example])
-    textTest("https://shortsvillereindeer.com/events")
+    
