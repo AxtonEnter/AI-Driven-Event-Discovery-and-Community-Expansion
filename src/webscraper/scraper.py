@@ -13,6 +13,19 @@ class WebScraper:
         self.maxPages = maxPages
         self.sleepTime = sleepTime
 
+    def parsePage(self, url):
+        html = self.driver.get_html(url)         
+        
+        if html is None:
+            return None
+        
+        # Parse html with BeautifulSoup
+        soup = BeautifulSoup(html, 'html.parser')
+        for tag in soup(["script", "style", "meta", "head", "title", "noscript"]):
+            tag.decompose()  # Remove from the tree
+
+        return soup
+
     def crawlSiteSeq(self, url, rootUrl, visited=None):
         """
         Crawls a website recursivley using Selenium and returns a list of visited URLs.
@@ -39,15 +52,11 @@ class WebScraper:
         visited.add(url)
         
         # Connect to page and return html using Selenium (runs js)
-        html = self.driver.get_html(url)         
+        soup = self.parsePage(url)        
         
-        if html is None:
+        if soup is None:
             return []
         
-        # Parse html with BeautifulSoup
-        soup = BeautifulSoup(html, 'html.parser')
-        for tag in soup(["script", "style", "meta", "head", "title", "noscript"]):
-            tag.decompose()  # Remove from the tree
         # Get the visible text
         text = soup.get_text(separator=" ", strip=True)
 
