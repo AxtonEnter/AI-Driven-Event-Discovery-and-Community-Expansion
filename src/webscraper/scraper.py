@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import time
 import zlib
+import asyncio
 
 import utils
 
@@ -12,26 +13,43 @@ class WebScraper:
         self.driver = driver
         self.maxPages = maxPages
         self.sleepTime = sleepTime
+        self.visited = set()  # Keep track of visited URLs
+    
+    async def start(self):
+        """
+        Start the Playwright browser for this scraper.
+        """
+        await self.driver.start()
 
-    def parsePage(self, url):
-        html = self.driver.get_html(url)         
-        
+    async def getSoup(self, url):
+        """
+        From a URL, get the soup object with some dynamic elements removed.
+        """
+        html = await self.driver.getHtml(url)         
         if html is None:
             return None
-        
         # Parse html with BeautifulSoup
         soup = BeautifulSoup(html, 'html.parser')
         for tag in soup(["script", "style", "meta", "head", "title", "noscript"]):
             tag.decompose()  # Remove from the tree
-
         return soup
+    
+    async def soupToText(self, soup):
+        """
+        Given a soup, extract visible text in the core of the page to be used for any text based process (model & hashing)
+        Always use this function to maintain continuity with text processing
+        """
+        for footer in soup.find_all("footer"):
+            footer.decompose()
+        text = soup.get_text(separator=" ", strip=True)
+        return text
 
-    def crawlSiteSeq(self, url, rootUrl, visited=None):
+    async def crawlSite(self, url, rootUrl, visited=None):
         """
         Crawls a website recursivley using Selenium and returns a list of visited URLs.
         """
         # Initialize visited set
-        if visited is None:  
+        if visited is None:
             visited = set()
         
         # Page Limit Check
@@ -43,7 +61,7 @@ class WebScraper:
             return []
 
         # Sleep before each connection
-        time.sleep(self.sleepTime)
+        await asyncio.sleep(self.sleepTime)
 
         # Debug
         print(url)
@@ -52,13 +70,13 @@ class WebScraper:
         visited.add(url)
         
         # Connect to page and return html using Selenium (runs js)
-        soup = self.parsePage(url)        
+        soup = await self.getSoup(url)        
         
         if soup is None:
             return []
         
         # Get the visible text
-        text = soup.get_text(separator=" ", strip=True)
+        text = await self.soupToText(soup)
 
         # Check page hash
         textHash = utils.hashText(text)
@@ -83,7 +101,10 @@ class WebScraper:
             full_url = urljoin(rootUrl, href)
 
             if full_url.startswith(rootUrl) and full_url not in visited:
-                self.crawlSiteSeq(full_url, rootUrl, visited)
+                await self.crawlSite(full_url, rootUrl, visited)
         
         return visited
     
+    async def close(self):
+        """Close the browser when done."""
+        await self.driver.close()
