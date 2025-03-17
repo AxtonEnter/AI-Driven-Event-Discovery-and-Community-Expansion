@@ -9,11 +9,13 @@ import utils
 
 
 class WebScraper:
-    def __init__(self, driver, maxPages=100, sleepTime=1):
+    def __init__(self, driver, rootUrl, maxPages=100, sleepTime=1):
         self.driver = driver
         self.maxPages = maxPages
         self.sleepTime = sleepTime
         self.visited = set()  # Keep track of visited URLs
+        self.visitedCount = 0
+        self.rootUrl = rootUrl
     
     async def start(self):
         """
@@ -25,7 +27,8 @@ class WebScraper:
         """
         From a URL, get the soup object with some dynamic elements removed.
         """
-        html = await self.driver.getHtml(url)         
+        html = await self.driver.getHtml(url)
+
         if html is None:
             return None
         # Parse html with BeautifulSoup
@@ -44,13 +47,16 @@ class WebScraper:
         text = soup.get_text(separator=" ", strip=True)
         return text
 
-    async def crawlSite(self, url, rootUrl, visited=None):
+    async def crawlSite(self, url=None, visited=None):
         """
-        Crawls a website recursivley using Selenium and returns a list of visited URLs.
+        Crawls a website recursivley using the given driver and returns a list of visited URLs.
         """
         # Initialize visited set
         if visited is None:
             visited = set()
+        
+        if url is None:
+            url = self.rootUrl
         
         # Page Limit Check
         if len(visited) >= self.maxPages:
@@ -68,9 +74,12 @@ class WebScraper:
 
         # Add url to visited
         visited.add(url)
+        self.visitedCount += 1
         
         # Connect to page and return html using Selenium (runs js)
-        soup = await self.getSoup(url)        
+        soup = await self.getSoup(url)
+
+        print(f"Current data transferred: {self.driver.getCurrentTraffic():.2f} MB")      
         
         if soup is None:
             return []
@@ -98,13 +107,17 @@ class WebScraper:
         # If so: create a recursive call to crawl the url
         for link in soup.find_all('a', href=True):
             href = link['href']
-            full_url = urljoin(rootUrl, href)
+            full_url = urljoin(self.rootUrl, href)
 
-            if full_url.startswith(rootUrl) and full_url not in visited:
-                await self.crawlSite(full_url, rootUrl, visited)
+            if full_url.startswith(self.rootUrl) and full_url not in visited:
+                await self.crawlSite(full_url, visited)
         
         return visited
     
     async def close(self):
         """Close the browser when done."""
         await self.driver.close()
+        ToalMb = self.driver.getTotalTraffic()
+        return [self.rootUrl, self.visitedCount, ToalMb, ToalMb / self.visitedCount]
+
+

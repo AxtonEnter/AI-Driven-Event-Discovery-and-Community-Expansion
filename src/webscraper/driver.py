@@ -11,6 +11,10 @@ class PlaywrightDriver:
         self.playwright = None
         self.browser = None
         self.page = None
+        self.context = None
+        self.session = None
+        self.totalBytes = 0
+        self.currentBytes = 0
     
     async def start(self):
         """Start the Playwright session asynchronously."""
@@ -25,34 +29,56 @@ class PlaywrightDriver:
 
         self.page = await self.browser.new_page()
 
+        # Block images, media, and fonts
+        await self.page.route("**/*", lambda route, request: route.abort() if request.resource_type in ["image", "media", "font"] else route.continue_())
+
+        # Set up CDP session to capture network traffic
+        self.context = self.page.context
+        self.session = await self.context.new_cdp_session(self.page)
+
+        # Track network responses
+        async def log_traffic(event):
+            if "encodedDataLength" in event:
+                self.totalBytes += event["encodedDataLength"]
+                self.currentBytes += event["encodedDataLength"]
+        
+        await self.session.send("Network.enable")
+        self.session.on("Network.loadingFinished", log_traffic)
+
+
+
     async def getHtml(self, url: str) -> str | None:
         """Fetch the HTML content of a webpage if it's an HTML page."""
         if not self.page:
             print("Error: Playwright not started. Call `await start()` first.")
             return None
         
+        self.currentBytes = 0
+        
         try:
             # First, check the Content-Type using a HEAD request
-            response = await self.page.request.fetch(url, method="HEAD")
-            if response:
-                content_type = response.headers.get("content-type", "").lower()
+            responseHead = await self.page.request.head(url)
+            if responseHead:
+                content_type = responseHead.headers.get("content-type", "").lower()
                 if "text/html" not in content_type:
                     print(f"URL is not an HTML page. Detected Content-Type: {content_type}")
                     return None
 
             # Navigate to the page
-            response = await self.page.goto(url, timeout=60000)
-            await self.page.wait_for_load_state('networkidle', timeout=60000)
-            if not response or response.status != 200:
-                print(f"Failed to load the URL. Status code: {response.status if response else 'Unknown'}")
+            responseBody = await self.page.goto(url, timeout=20000)
+            await self.page.wait_for_load_state('networkidle', timeout=20000)
+
+            if not responseBody or responseBody.status != 200:
+                print(f"Failed to load the URL. Status code: {responseBody.status if responseBody else 'Unknown'}")
                 return None
 
             # Ensure the page contains an <html> tag
-            page_content = await self.page.content()
-            if "<html" not in page_content.lower():
+            pageContent = await self.page.content()
+            if "<html" not in pageContent.lower():
                 print(f"URL is not an HTML page (fallback check).")
                 return None
-            return page_content  # Return HTML content
+            
+            return pageContent  # Return HTML content
         
         except Exception as e:
             print(f"Error fetching URL {url}: {e}")
@@ -64,3 +90,13 @@ class PlaywrightDriver:
             await self.browser.close()
         if self.playwright:
             await self.playwright.stop()
+    
+    def getCurrentTraffic(self):
+        """Return the current network traffic (in MB) for the last page."""
+        currentMb = self.currentBytes / (1024 * 1024)  # Convert bytes to MB
+        return currentMb
+
+    def getTotalTraffic(self):
+        """Return the total network traffic (in MB)."""
+        totalMb = self.totalBytes / (1024 * 1024)  # Convert bytes to MB
+        return totalMb

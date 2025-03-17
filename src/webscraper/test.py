@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from driver import PlaywrightDriver
 from scraper import WebScraper
 import asyncio
+from tabulate import tabulate
 
 
 def textTest(url):
@@ -18,28 +19,36 @@ def textTest(url):
     finally:
         driver.close()
 
-async def crawl_with_semaphore(semaphore, scraper, url, rootUrl):
+async def crawl_with_semaphore(semaphore, scraper):
     """Ensures only X scrapers run at a time using a semaphore."""
     async with semaphore:  # Limits number of concurrent scrapers
-        await scraper.crawlSite(url, rootUrl)
+        return await scraper.crawlSite()
 
 async def concurrentCrawlerTest():
-    maxConcurrentScrapers = 2
+    maxConcurrentScrapers = 7
     urls = [
-    "https://www.punsonline.com/",
     "https://shortsvillereindeer.com/",
-    "https://recordarchive.com/"]
+    "https://recordarchive.com/",
+    "https://www.codeninjas.com/tx-san-antonio-stone-oak-1",
+    "https://rgmc.ticketleap.com/",
+    "https://www.punsonline.com/"]
+
+    urls = ["https://shortsvillereindeer.com/"]
 
     semaphore = asyncio.Semaphore(maxConcurrentScrapers)  # Limit concurrency
-    scrapers = [WebScraper(driver=PlaywrightDriver(headless=True)) for _ in range(len(urls))]
+    scrapers = [WebScraper(driver=PlaywrightDriver(headless=True), rootUrl=url, maxPages=200) for i, (url) in enumerate(urls)]
 
     await asyncio.gather(*(scraper.start() for scraper in scrapers))
-    tasks = [crawl_with_semaphore(semaphore, scrapers[i], url, url) for i, (url) in enumerate(urls)]
+    tasks = [crawl_with_semaphore(semaphore, scrapers[i]) for i in range(len(scrapers))]
     await asyncio.gather(*tasks)
 
-    await asyncio.gather(*(scraper.close() for scraper in scrapers))
+    print("- - - - -")
 
+    data = await asyncio.gather(*(scraper.close() for scraper in scrapers))
     print("Crawling complete!")
+    headers = ["URL", "Pages", "Total MB", "MB/P"]
+    table = tabulate(data, headers=headers, tablefmt="grid")
+    print(table)
 
 
 def main(start_url, root_url):
@@ -48,7 +57,7 @@ def main(start_url, root_url):
     driver = PlaywrightDriver(headless=True)
     try:
         scraper = WebScraper(driver, 100, 0.5)  # Initialize WebScraper
-        pages = scraper.crawlSiteSeq(start_url, root_url) # Seq
+        pages = scraper.crawlSite(start_url, root_url) # Seq
         print(f"\nTotal pages found: {len(pages)}")
         return pages
     finally:
