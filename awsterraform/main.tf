@@ -80,7 +80,74 @@ resource "aws_security_group" "ec2_sg" {
 }
 
 # API Gateway resources started but nowhere near finished
-resource "aws_api_gateway_rest_api" "api" {
-  name        = "MyAPI"
-  description = "API Gateway for EC2 and RDS interaction"
+resource "aws_api_gateway_resource" "lambda_resource" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  path_part   = "data"
+}
+
+resource "aws_api_gateway_method" "get_method" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.lambda_resource.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "lambda_integration" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.lambda_resource.id
+  http_method = aws_api_gateway_method.get_method.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.api_handler.invoke_arn
+}
+
+data "archive_file" "lambda" {
+  type        = "zip"
+  source_file = "${path.module}/lambda/test.js"
+  output_path = "${path.module}/lambda/test.zip"
+}
+
+data "archive_file" "scraper" {
+  type        = "zip"
+  source_file = "${path.module}/lambda/testtwo.js"
+  output_path = "${path.module}/lambda/testtwo.zip"
+}
+
+# Lambda functions, currently just have dummy code in them to make sure terraform deploys
+resource "aws_lambda_function" "api_handler" {
+  filename         = data.archive_file.lambda.output_path
+  function_name    = "apiHandler"
+  role             = aws_iam_role.lambda_exec.arn
+  handler          = "index.handler"
+  runtime          = "nodejs18.x"
+  source_code_hash = data.archive_file.lambda.output_base64sha256
+}
+
+resource "aws_lambda_function" "scraper" {
+  filename         = data.archive_file.scraper.output_path
+  function_name    = "scraper"
+  role             = aws_iam_role.lambda_exec.arn
+  handler          = "index.handler"
+  runtime          = "nodejs18.x"
+  source_code_hash = data.archive_file.scraper.output_base64sha256
+}
+
+resource "aws_iam_role" "lambda_exec" {
+  name = "lambda_exec_role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action    = "sts:AssumeRole",
+      Effect    = "Allow",
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
