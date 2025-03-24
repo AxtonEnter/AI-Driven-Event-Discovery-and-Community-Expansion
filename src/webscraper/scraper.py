@@ -3,7 +3,6 @@ from urllib.parse import urljoin
 import time
 import zlib
 import asyncio
-
 import utils
 
 
@@ -65,12 +64,25 @@ class WebScraper:
         # Return on already visited url (before attempting to connect)
         if url in visited:  
             return []
+        
+        # Debug
+        print(url)
+        
+        # Check if URL contains date and disallow past dates
+        dates = utils.urlDateCheck(url)
+        if len(dates) == 1:
+            isPast = utils.isPastDate(dates[0])
+            if isPast == None:
+                print("Date Error")
+            elif isPast == True:
+                print("URL Contains Past Date")
+                return[]
+            else:
+                print("URL Contains Current or Future Date")
+
 
         # Sleep before each connection
         await asyncio.sleep(self.sleepTime)
-
-        # Debug
-        print(url)
 
         # Add url to visited
         visited.add(url)
