@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import { AppBar, Button, Divider, IconButton, Menu, MenuItem, Stack, Typography } from '@mui/material';
+import { AppBar, Button, Divider, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router';
 
 
@@ -14,8 +14,8 @@ export const Page = ({ children }: Props) => {
   const navigate = useNavigate();
 
   return (
-    <Box>
-      <AppBar position='static' color='transparent' sx={{ px: 2 }}>
+    <Box width={"100%"}>
+      <AppBar position='static' color='transparent' sx={{ px: 2, width: "100%" }}>
         <Stack direction={"row"} alignItems={"center"}>
           <Divider orientation='vertical' sx={{ mx: 2 }} component={"p"} />
 
