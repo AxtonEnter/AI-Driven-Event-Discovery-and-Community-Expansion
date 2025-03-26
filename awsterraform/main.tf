@@ -5,18 +5,18 @@ provider "aws" {
 }
 
 locals {
-    aws_key = "<YOUR-KEY-NAME>"   # Change this to your desired AWS region
+    aws_key = ""   # Change this to your desired AWS region
   }
 
 # Amplify Application for repo add in a react app, you can fork it from my notesapp repo just to check if it works
 resource "aws_amplify_app" "frontend" {
   name       = "MyAmplifyApp"
-  repository = ""
+  repository = "git@github.com:evstod/AI-Driven-Event-Discovery-and-Community-Expansion.git"
 }
 
-resource "aws_amplify_branch" "main" {
+resource "aws_amplify_branch" "10-front-end-ui-draft-1" {
   app_id      = aws_amplify_app.frontend.id
-  branch_name = "main"
+  branch_name = "10-front-end-ui-draft-1"
 }
 #Stuck on how to implement amplify backend elements through terraform an additional resource is necessary and may require an import
 
