@@ -3,6 +3,7 @@ import { EventItem } from "../../types/Event";
 import EditIcon from '@mui/icons-material/Edit';
 import { useState } from "react";
 import { Check, Close, ExpandLess, ExpandMore } from "@mui/icons-material";
+import { EditEventUrlModal } from "./EditEventUrlModal";
 
 interface Props {
   event: EventItem,
@@ -12,6 +13,7 @@ interface Props {
 export function EventRow(props: Props) {
   const [selected, setSelected] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<boolean>(false);
+  const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
 
   return (
     <TableRow>
@@ -23,7 +25,7 @@ export function EventRow(props: Props) {
           <div>
             <a href={props.event.url}>{props.event.url}</a>
           </div>
-          <Button startIcon={<EditIcon />}>Edit</Button>
+          <Button startIcon={<EditIcon />} onClick={() => setEditModalOpen(true)}>Edit</Button>
         </Stack>
       </TableCell>
       <TableCell>
@@ -57,6 +59,7 @@ export function EventRow(props: Props) {
         <Button startIcon={<Check />} color="success" variant="contained" sx={{maxWidth: '150px', width: '70%', mb: 1}}>Accept</Button>
         <Button startIcon={<Close />} color="error" variant="contained" sx={{maxWidth: '150px', width: '70%'}}>Reject</Button>
       </TableCell>
+      <EditEventUrlModal currentUrl={props.event.url} isOpen={editModalOpen} handleClose={() => setEditModalOpen(false)} />
     </TableRow>
   )
 }

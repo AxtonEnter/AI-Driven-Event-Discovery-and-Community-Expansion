@@ -1,5 +1,5 @@
 import React, { ReactNode } from "react";
-import { Card, CardHeader, IconButton, Modal, Stack } from "@mui/material";
+import { Box, Card, CardHeader, IconButton, Modal, Stack, Typography } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 
 interface PrettyModalProps {
@@ -29,14 +29,17 @@ export default function PrettyModal({
           boxShadow: 24,
           maxHeight: "calc(100vh - 160px)",
           overflowY: "auto",
-          p: 4,
+          px: 4,
+          py: 1.5
         }}
       >
-        <CardHeader title={title} />
-        <Stack direction={"row"} alignItems={"flex-end"}>
+        <Stack direction={"row"} justifyContent={"space-between"}>
+          <Typography variant="h5">Edit URL</Typography>
           <IconButton onClick={onClose}><CloseIcon /></IconButton>
         </Stack>
-        {children}
+        <Box py={2}>
+          {children}
+        </Box>
       </Card>
     </Modal>
   );
