@@ -11,7 +11,6 @@ class PlaywrightDriver:
         If given a list of ports, the driver will rotate IP addresses using a proxy.
         """
         self.headless = headless
-        self.currentPort = None
         self.proxy = proxy
         self.playwright = None
         self.browser = None
@@ -20,46 +19,58 @@ class PlaywrightDriver:
         self.session = None
         self.totalBytes = 0
         self.currentBytes = 0
+        self.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+
     
     async def start(self):
         """Start the Playwright session asynchronously."""
         self.playwright = await async_playwright().start()
 
-        self.browser = await self.playwright.chromium.launch(headless=self.headless)
-
+        if self.proxy is not None:
+            self.browser = await self.playwright.chromium.launch(proxy={
+                                            "server": str(self.proxy.getServer()) + ":" + str(self.proxy.getCurrentPort()),
+                                            "username": self.proxy.getUsername(),
+                                            "password": self.proxy.getPassword()},
+                                            headless=self.headless)
+        else:
+            self.browser = await self.playwright.chromium.launch(headless=self.headless)
+        
         self.page = await self.browser.new_page()
-
-        # Block images, media, and fonts
-        await self.page.route("**/*", lambda route, request: route.abort() if request.resource_type in ["image", "stylesheet", "font", "media"] else route.continue_())
 
         # Set up CDP session to capture network traffic
         self.context = self.page.context
         self.session = await self.context.new_cdp_session(self.page)
 
-        if self.proxy:
-            self.context = await self.browser.new_context(proxy={"server": self.proxy.getServer() + ":" + self.proxy.getCurrentPort(),
-                                                                 "username": self.proxy.getUsername(),
-                                                                 "password": self.proxy.getPassword()})
-
         # Track network responses
-        async def log_traffic(event):
+        async def logTraffic(event):
             if "encodedDataLength" in event:
                 self.totalBytes += event["encodedDataLength"]
                 self.currentBytes += event["encodedDataLength"]
         
         await self.session.send("Network.enable")
-        self.session.on("Network.loadingFinished", log_traffic)
+        self.session.on("Network.loadingFinished", logTraffic)
+    
+    async def interceptRequest(self, route, request, targetUrl):
+        if request.url == targetUrl:
+            if request.resource_type in ["image", "stylesheet", "font", "media"]:
+                await route.abort()  # Block unwanted resource types
+            else:
+                await route.continue_()  # Allow other requests for the main URL
+        else:
+            print("Intercepted: " + str(request.url))
+            await route.abort()  # Block all other domains
 
-
-    def rotateProxy(self):
+    async def rotateProxy(self):
         """Rotate the proxy IP address."""
-        if self.proxy:
+        if self.proxy is not None:
             # Rotate the proxy IP address
             self.proxy.nextPort()
-            self.context = self.browser.new_context(proxy={"server": self.proxy.getServer() + ":" + self.proxy.getCurrentPort(),
-                                                           "username": self.proxy.getUsername(),
-                                                           "password": self.proxy.getPassword()})
-            pass
+            self.browser = await self.playwright.chromium.launch(proxy={
+                                        "server": str(self.proxy.getServer()) + ":" + str(self.proxy.getCurrentPort()),
+                                        "username": self.proxy.getUsername(),
+                                        "password": self.proxy.getPassword()},
+                                        headless=self.headless)
+            self.page = await self.browser.new_page()
 
     async def getHtml(self, url: str) -> str | None:
         """Fetch the HTML content of a webpage if it's an HTML page."""
@@ -68,15 +79,24 @@ class PlaywrightDriver:
             return None
         
         if self.proxy:
-            self.rotateProxy(self)
+            print("Rotating")
+            await self.rotateProxy()
         
         self.currentBytes = 0
-        
+
+        await self.page.route("**/*", lambda route, request: self.interceptRequest(route, request, url))
+
         try:
             # First, check the Content-Type using a HEAD request
             responseHead = await self.page.request.head(url)
             if responseHead:
                 content_type = responseHead.headers.get("content-type", "").lower()
+                if "application/json" in content_type:
+                    print("JSON Detected")
+                    responseBody = await self.page.goto(url, timeout=20000)
+                    json_data = await responseBody.json()
+                    return json_data
+
                 if "text/html" not in content_type:
                     print(f"URL is not an HTML page. Detected Content-Type: {content_type}")
                     return None
@@ -87,6 +107,10 @@ class PlaywrightDriver:
                 await self.page.wait_for_load_state("load", timeout=10000)  # Wait for load trigger
             except:
                 await self.page.wait_for_load_state("networkidle", timeout=20000)  # If timeout, wait for network idle
+
+            if responseBody.status == 403:
+                # IP Blocked
+                pass
 
             if not responseBody or responseBody.status != 200:
                 print(f"Failed to load the URL. Status code: {responseBody.status if responseBody else 'Unknown'}")
