@@ -4,6 +4,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import { useState } from "react";
 import { Check, Close, ExpandLess, ExpandMore } from "@mui/icons-material";
 import { EditEventUrlModal } from "./EditEventUrlModal";
+import moment from "moment";
 
 interface Props {
   event: EventItem,
@@ -28,15 +29,15 @@ export function EventRow(props: Props) {
           <Button startIcon={<EditIcon />} onClick={() => setEditModalOpen(true)}>Edit</Button>
         </Stack>
       </TableCell>
-      <TableCell>
+      <TableCell width={"15%"}>
         <Typography>
-          <b>Start: </b>
-          {props.event.startDateTime.toString()}
+          <b>Start: </b><br></br>
+          {moment(props.event.startDateTime).format('ddd, MMM DD YYYY HH:mm')}
         </Typography>
         <Divider />
         <Typography>
-          <b>End: </b>
-          {props.event.endDateTime.toString()}
+          <b>End: </b><br></br>
+          {moment(props.event.endDateTime).format('ddd, MMM DD YYYY HH:mm')}
         </Typography>
       </TableCell>
       <TableCell width={"65%"}>
