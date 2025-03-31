@@ -1,4 +1,4 @@
-import { Button, Input, Modal, Stack } from "@mui/material"
+import { Button, Input, Stack } from "@mui/material"
 import PrettyModal from "../PrettyModal"
 import { useState } from "react";
 

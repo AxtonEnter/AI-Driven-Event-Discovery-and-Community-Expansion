@@ -1,5 +1,5 @@
-import React, { ReactNode } from "react";
-import { Box, Card, CardHeader, IconButton, Modal, Stack, Typography } from "@mui/material";
+import { ReactNode } from "react";
+import { Box, Card, IconButton, Modal, Stack, Typography } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 
 interface PrettyModalProps {

@@ -1,5 +1,5 @@
 import { ExpandMore } from "@mui/icons-material";
-import { Box, Button, Card, Checkbox, Collapse, FormControlLabel, FormGroup, IconButton, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { Box, Button, Card, Collapse, FormGroup, IconButton, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import { ChangeEvent, useEffect, useState } from "react";
 import SearchBar from "./SearchBar";
 import { useLocation, useNavigate } from "react-router";
@@ -44,7 +44,7 @@ export function SearchFilterOptions() {
     setStartDateString(startDate);
     setStopDateString(stopDate);
     setSearchText(queryString);
-    setFilters({...filters, status})
+    setFilters({...filters, status});
 
     // query({
     //   variables: {
