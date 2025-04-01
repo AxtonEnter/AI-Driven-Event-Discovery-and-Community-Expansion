@@ -1,18 +1,15 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-import time
 import zlib
 import asyncio
 import utils
-
-
 
 class WebScraper:
     def __init__(self, driver, rootUrl, maxPages=100, sleepTime=1):
         self.driver = driver
         self.maxPages = maxPages
         self.sleepTime = sleepTime
-        self.visited = set()  # Keep track of visited URLs
+        self.visited = set()
         self.visitedCount = 0
         self.rootUrl = rootUrl
     
@@ -30,6 +27,7 @@ class WebScraper:
 
         if html is None:
             return None
+        
         # Parse html with BeautifulSoup
         soup = BeautifulSoup(html, 'html.parser')
         for tag in soup(["script", "style", "meta", "head", "title", "noscript"]):
@@ -41,8 +39,6 @@ class WebScraper:
         Given a soup, extract visible text in the core of the page to be used for any text based process (model & hashing)
         Always use this function to maintain continuity with text processing
         """
-        for footer in soup.find_all("footer"):
-            footer.decompose()
         text = soup.get_text(separator=" ", strip=True)
         return text
 
@@ -80,18 +76,15 @@ class WebScraper:
             else:
                 print("URL Contains Current or Future Date")
 
-
-        # Sleep before each connection
-        await asyncio.sleep(self.sleepTime)
-
         # Add url to visited
         visited.add(url)
         self.visitedCount += 1
+
+        # Sleep before each connection
+        await asyncio.sleep(self.sleepTime)
         
         # Connect to page and return html using Selenium (runs js)
-        soup = await self.getSoup(url)
-
-        print(f"Current data transferred: {self.driver.getCurrentTraffic():.2f} MB")      
+        soup = await self.getSoup(url)     
         
         if soup is None:
             return []
@@ -99,9 +92,11 @@ class WebScraper:
         # Get the visible text
         text = await self.soupToText(soup)
 
+        """
+        This block will be incomplete until database and message system implemented
+        """
         # Check page hash
         textHash = utils.hashText(text)
-        # print("SHA-256 Hash:", textHash)
         if textHash == utils.getHash(url):
             # Page has not changed (dont send to event queue)
             pass
@@ -109,11 +104,9 @@ class WebScraper:
             # Page has changed (send to event queue)
             compressed = zlib.compress(text.encode('utf-8'), level=-1)
             pass
-
-        
-        # Find all image urls
-        # image_tags = soup.find_all('img')
-        # image_urls = [img['src'] for img in image_tags]
+        """
+        Done
+        """
 
         # For each link, convert partial urls to full and check if its on root site
         # If so: create a recursive call to crawl the url
@@ -131,5 +124,3 @@ class WebScraper:
         await self.driver.close()
         ToalMb = self.driver.getTotalTraffic()
         return [self.rootUrl, self.visitedCount, ToalMb, ToalMb / self.visitedCount]
-
-

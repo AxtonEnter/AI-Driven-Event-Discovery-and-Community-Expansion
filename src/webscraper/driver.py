@@ -8,20 +8,16 @@ class PlaywrightDriver:
     def __init__(self, headless: bool = True, proxy: OxylabsProxy = None):
         """
         Initialize the Playwright driver with a browser instance.
-        If given a list of ports, the driver will rotate IP addresses using a proxy.
+        If given a proxy, the driver will rotate IP addresses.
         """
         self.headless = headless
         self.proxy = proxy
         self.playwright = None
         self.browser = None
         self.page = None
-        self.context = None
         self.session = None
-        self.totalBytes = 0
-        self.currentBytes = 0
         self.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 
-    
     async def start(self):
         """Start the Playwright session asynchronously."""
         self.playwright = await async_playwright().start()
@@ -36,21 +32,9 @@ class PlaywrightDriver:
             self.browser = await self.playwright.chromium.launch(headless=self.headless)
         
         self.page = await self.browser.new_page()
-
-        # Set up CDP session to capture network traffic
-        self.context = self.page.context
-        self.session = await self.context.new_cdp_session(self.page)
-
-        # Track network responses
-        async def logTraffic(event):
-            if "encodedDataLength" in event:
-                self.totalBytes += event["encodedDataLength"]
-                self.currentBytes += event["encodedDataLength"]
-        
-        await self.session.send("Network.enable")
-        self.session.on("Network.loadingFinished", logTraffic)
     
     async def interceptRequest(self, route, request, targetUrl):
+        """Block specific resource types from loading. Also blocks routing to other pages."""
         if request.url == targetUrl:
             if request.resource_type in ["image", "stylesheet", "font", "media"]:
                 await route.abort()  # Block unwanted resource types
@@ -61,9 +45,8 @@ class PlaywrightDriver:
             await route.abort()  # Block all other domains
 
     async def rotateProxy(self):
-        """Rotate the proxy IP address."""
+        """Rotates the proxy IP address."""
         if self.proxy is not None:
-            # Rotate the proxy IP address
             self.proxy.nextPort()
             self.browser = await self.playwright.chromium.launch(proxy={
                                         "server": str(self.proxy.getServer()) + ":" + str(self.proxy.getCurrentPort()),
@@ -134,13 +117,3 @@ class PlaywrightDriver:
             await self.browser.close()
         if self.playwright:
             await self.playwright.stop()
-    
-    def getCurrentTraffic(self):
-        """Return the current network traffic (in MB) for the last page."""
-        currentMb = self.currentBytes / (1024 * 1024)  # Convert bytes to MB
-        return currentMb
-
-    def getTotalTraffic(self):
-        """Return the total network traffic (in MB)."""
-        totalMb = self.totalBytes / (1024 * 1024)  # Convert bytes to MB
-        return totalMb
