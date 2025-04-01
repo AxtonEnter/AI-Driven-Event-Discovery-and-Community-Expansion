@@ -5,7 +5,7 @@ from datetime import datetime
 # A list of helper functions used in the webscraper
 
 def hashText(text):
-    """Return a strings SHA-256 hash."""
+    """Return a string's SHA-256 hash."""
     return hashlib.sha256(text.encode()).hexdigest()
 
 def getHash(url):
@@ -14,6 +14,7 @@ def getHash(url):
     return False
 
 def urlDateCheck(url):
+    """Find date formats in a url (or any string)"""
     datePattern = re.compile(r'\b(\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{4})\b')
     dates = datePattern.findall(url)
     return dates
