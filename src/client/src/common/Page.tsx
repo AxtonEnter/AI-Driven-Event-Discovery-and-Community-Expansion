@@ -4,6 +4,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import { AppBar, Button, Divider, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router';
+import { ProgresssContainer } from './ProgressContainer';
 
 
 type Props = {
@@ -37,6 +38,8 @@ export const Page = ({ children }: Props) => {
 
         </Typography>
       </footer>
+
+      <ProgresssContainer />
     </Box>
   )
 }
