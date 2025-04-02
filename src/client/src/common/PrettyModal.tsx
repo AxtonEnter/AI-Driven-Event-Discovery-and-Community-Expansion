@@ -34,7 +34,7 @@ export default function PrettyModal({
         }}
       >
         <Stack direction={"row"} justifyContent={"space-between"}>
-          <Typography variant="h5">Edit URL</Typography>
+          <Typography variant="h5">{title}</Typography>
           <IconButton onClick={onClose}><CloseIcon /></IconButton>
         </Stack>
         <Box py={2}>
