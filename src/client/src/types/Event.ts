@@ -5,11 +5,13 @@ export enum ApprovalStatus {
 
 export type EventItem = {
     url: string;
-    shortDesc: string;
-    details: string;
+    tabTitle: string;
+    parsedText: string;
+    organization: Organization;
     imageUrls: string[];
     status: ApprovalStatus | null;
-    startDateTime: Date;
-    endDateTime: Date;
-    
+}
+
+export type Organization = {
+    name: string
 }
