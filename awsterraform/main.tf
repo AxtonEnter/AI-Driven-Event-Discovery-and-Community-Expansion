@@ -41,7 +41,6 @@ resource "aws_db_instance" "rds_instance" {
   skip_final_snapshot   = true
 }
 
-
 resource "aws_instance" "my_server" {
    ami           = data.aws_ami.amazonlinux.id
    instance_type = var.instance_type
