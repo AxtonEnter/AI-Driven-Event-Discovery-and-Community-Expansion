@@ -6,18 +6,11 @@ locals {
     aws_key = "us-east-1"   # Change this to your desired AWS region
 }
 
-# two strategies can be used to get the webscraper into the cloud
-
-
 resource "aws_instance" "my_server" {
-   ami           = data.aws_ami.amazonlinux.id
-   instance_type = var.instance_type
-   key_name      = "${local.aws_key}"                  
-  
-   tags = {
-     Name = "my ec2"
-   }                  
- }
+  ami           = data.aws_ami.amazonlinux.id
+  instance_type = var.instance_type
+  key_name      = var.key_name
+}
 
 resource "aws_security_group" "ec2_sg" {
   name        = "ec2_sg"

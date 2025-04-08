@@ -12,7 +12,7 @@ locals {
 resource "aws_instance" "my_server" {
    ami           = data.aws_ami.amazonlinux.id
    instance_type = var.instance_type
-   key_name      = "${local.aws_key}"                  
+   key_name      = var.key_name                  
   
    tags = {
      Name = "my ec2"
