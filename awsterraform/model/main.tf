@@ -13,7 +13,7 @@ resource "aws_instance" "my_server" {
 }
 
 resource "aws_security_group" "ec2_sg" {
-  name        = "ec2_sg"
+  name        = "ec2_sg_model"
   description = "Allow inbound traffic on port 80 and 22"
 
   ingress {
@@ -41,7 +41,7 @@ resource "aws_security_group" "ec2_sg" {
 #strategey 1 is through s3 buckets
 
 resource "aws_s3_bucket" "example" {
-  bucket = "ai-event-discovery-tf-test-bucket"
+  bucket = "ai-event-discovery-model-tf-test-bucket"
 }
 
 resource "aws_s3_object" "object1" {
