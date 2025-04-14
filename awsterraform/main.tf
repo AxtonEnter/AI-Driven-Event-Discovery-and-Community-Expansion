@@ -16,18 +16,21 @@ locals {
 
 # we are handling variables in modules now each module will just call source for simplicity sake. 
 
+module "webscrapper" {
+  source        = "./webscrapper"
+}
+/*
 module "model_stack" {
   source        = "./model"
 }
 
-module "webscrapper" {
-  source        = "./webscrapper"
+
+
+module "lambda_function" {
+ source = "./lambda"
 }
 
-#module "lambda_function" {
-# source = "./lambda"
-#}
-
-#module "rds" {
-# source = "./rds"
-#}
+module "rds" {
+ source = "./rds"
+}
+*/
