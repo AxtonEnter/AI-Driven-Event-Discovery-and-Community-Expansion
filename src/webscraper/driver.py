@@ -15,7 +15,6 @@ class PlaywrightDriver:
         self.playwright = None
         self.browser = None
         self.page = None
-        self.session = None
         self.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 
     async def start(self):
@@ -41,13 +40,15 @@ class PlaywrightDriver:
             else:
                 await route.continue_()  # Allow other requests for the main URL
         else:
-            print("Intercepted: " + str(request.url))
+            # print("Intercepted: " + str(request.url))
             await route.abort()  # Block all other domains
 
     async def rotateProxy(self):
         """Rotates the proxy IP address."""
         if self.proxy is not None:
             self.proxy.nextPort()
+            await self.page.close()
+            await self.browser.close()
             self.browser = await self.playwright.chromium.launch(proxy={
                                         "server": str(self.proxy.getServer()) + ":" + str(self.proxy.getCurrentPort()),
                                         "username": self.proxy.getUsername(),
@@ -60,40 +61,48 @@ class PlaywrightDriver:
         if not self.page:
             print("Error: Playwright not started. Call `await start()` first.")
             return None
-        
-        if self.proxy:
-            print("Rotating")
-            await self.rotateProxy()
-        
-        self.currentBytes = 0
 
         await self.page.route("**/*", lambda route, request: self.interceptRequest(route, request, url))
 
         try:
             # First, check the Content-Type using a HEAD request
+            if self.proxy:
+                while True:
+                    bannedPortCount = len(self.proxy.getBannedPorts())
+                    if bannedPortCount >= 5:
+                        print("Max Blocked IPs Reached (5)")
+                        return None
+                    
+                    print("Rotating")
+                    await self.rotateProxy()
+                    await self.page.route("**/*", lambda route, request: self.interceptRequest(route, request, url))
+                    
+                    responseHead = await self.page.request.head(url)
+
+                    if responseHead.status == 403:
+                        print("Port Banned")
+                        self.proxy.currentPortBanned()
+                        continue
+                    else:
+                        break
+
             responseHead = await self.page.request.head(url)
+
             if responseHead:
                 content_type = responseHead.headers.get("content-type", "").lower()
-                if "application/json" in content_type:
-                    print("JSON Detected")
-                    responseBody = await self.page.goto(url, timeout=20000)
-                    json_data = await responseBody.json()
-                    return json_data
-
                 if "text/html" not in content_type:
                     print(f"URL is not an HTML page. Detected Content-Type: {content_type}")
                     return None
+            else:
+                print("No Response Head")
+                return None
 
             # Navigate to the page
-            responseBody = await self.page.goto(url, timeout=20000)
-            try:
-                await self.page.wait_for_load_state("load", timeout=10000)  # Wait for load trigger
-            except:
-                await self.page.wait_for_load_state("networkidle", timeout=20000)  # If timeout, wait for network idle
-
-            if responseBody.status == 403:
-                # IP Blocked
-                pass
+            responseBody = await self.page.goto(url, timeout=20000, wait_until="networkidle")
+            # try:
+            #     await self.page.wait_for_load_state("load", timeout=10000)  # Wait for load trigger
+            # except:
+            #     await self.page.wait_for_load_state("networkidle", timeout=20000)  # If timeout, wait for network idle
 
             if not responseBody or responseBody.status != 200:
                 print(f"Failed to load the URL. Status code: {responseBody.status if responseBody else 'Unknown'}")
