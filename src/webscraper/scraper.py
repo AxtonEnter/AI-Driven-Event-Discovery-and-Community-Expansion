@@ -3,9 +3,11 @@ from urllib.parse import urljoin
 import zlib
 import asyncio
 import utils
+import logging
+
 
 class WebScraper:
-    def __init__(self, driver, rootUrl, maxPages=100, sleepTime=1):
+    def __init__(self, driver, rootUrl, logger: logging.Logger, maxPages=100, sleepTime=1):
         self.driver = driver
         self.maxPages = maxPages
         self.sleepTime = sleepTime
@@ -13,6 +15,9 @@ class WebScraper:
         self.visitedCount = 0
         self.rootUrl = rootUrl
         self.emails = []
+        self.logger = logger
+
+        self.logger.info(f"Initialized Scraper")
     
     async def start(self):
         """
@@ -54,6 +59,7 @@ class WebScraper:
         # Initialize visited set
         if visited is None:
             visited = set()
+            self.logger.info(f"Starting Crawl")
         
         if url is None:
             url = self.rootUrl
@@ -67,19 +73,20 @@ class WebScraper:
             return []
         
         # Debug
-        print(url)
+        self.logger.info(f"Visiting: {url}")
+        # print(url)
         
         # Check if URL contains date and disallow past dates
         dates = utils.stringDateCheck(url)
         if len(dates) == 1:
             isPast = utils.isPastDate(dates[0])
             if isPast == None:
-                print("Date Error")
+                self.logger.warning("Date Error")
             elif isPast == True:
-                print("URL Contains Past Date")
+                self.logger.info("URL Contains Past Date")
                 return[]
             else:
-                print("URL Contains Current or Future Date")
+                self.logger.info("URL Contains Current or Future Date")
 
         # Add url to visited
         visited.add(url)
@@ -155,9 +162,7 @@ class WebScraper:
         
         
 
-
-
-    
     async def close(self):
         """Close the browser when done."""
         await self.driver.close()
+        self.logger.info("Closed Driver - Scraper")
