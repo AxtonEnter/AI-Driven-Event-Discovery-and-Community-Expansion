@@ -16,7 +16,18 @@ resource "aws_instance" "my_server" {
   
    tags = {
      Name = "my ec2"
-   }                  
+   } 
+   /*                 
+   user_data = <<-EOF
+   #!/bin/bash
+   yum update -y
+   yum install -y gcc python3 python3-pip git
+   pip3 install --upgrade pip
+   pip3 install virtualenv
+   pip install beautifulsoup4 playwright
+   python -m playwright install
+   EOF
+   */
  }
 
 resource "aws_security_group" "ec2_sg" {
@@ -48,7 +59,7 @@ resource "aws_security_group" "ec2_sg" {
 #strategey 1 is through s3 buckets
 
 resource "aws_s3_bucket" "example" {
-  bucket = "ai-event-discovery-webscraper-tf-test-bucket"
+  bucket = "ai-event-discovery-webscraper-tf-test-bucket-jth9970"
 }
 
 resource "aws_s3_object" "object1" {

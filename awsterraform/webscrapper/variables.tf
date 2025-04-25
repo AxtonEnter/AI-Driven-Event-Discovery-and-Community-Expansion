@@ -6,5 +6,5 @@ variable "instance_type" {
 
 variable "key_name" {
     type = string
-    default = "" #keyname here
+    default = "EventDiscoveryKey" #keyname here
 }

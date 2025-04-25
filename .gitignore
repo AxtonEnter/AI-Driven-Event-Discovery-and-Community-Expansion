@@ -324,3 +324,33 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Ignore Terraform cache directory
+.terraform/
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# crash log files
+crash.log
+crash.*.log
+
+# .tfvars files (usually contain sensitive data)
+*.tfvars
+*.tfvars.json
+
+# override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# transient lock files
+.terraform.tfstate.lock.info
+.terraform.lock.hcl
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+node_modules

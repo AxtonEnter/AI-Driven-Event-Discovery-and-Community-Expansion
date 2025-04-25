@@ -1,11 +1,10 @@
-from playwright.sync_api import sync_playwright
+# from playwright.sync_api import sync_playwright
 from playwright.async_api import async_playwright
 from proxy import OxylabsProxy
-import time
-import asyncio
+import logging
 
 class PlaywrightDriver:
-    def __init__(self, headless: bool = True, proxy: OxylabsProxy = None):
+    def __init__(self, logger: logging.Logger, headless: bool = True, proxy: OxylabsProxy = None):
         """
         Initialize the Playwright driver with a browser instance.
         If given a proxy, the driver will rotate IP addresses.
@@ -16,6 +15,9 @@ class PlaywrightDriver:
         self.browser = None
         self.page = None
         self.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+        self.logger = logger
+
+        self.logger.info(f"Initialized Driver")
 
     async def start(self):
         """Start the Playwright session asynchronously."""
@@ -70,31 +72,31 @@ class PlaywrightDriver:
                 while True:
                     bannedPortCount = len(self.proxy.getBannedPorts())
                     if bannedPortCount >= 5:
-                        print("Max Blocked IPs Reached (5)")
+                        self.logger.critical("Max Blocked IPs Reached (5)")
                         return None
                     
-                    print("Rotating")
                     await self.rotateProxy()
+                    self.logger.info(f"Rotated Proxy to Port: {self.proxy.getCurrentPort()}")
                     await self.page.route("**/*", lambda route, request: self.interceptRequest(route, request, url))
-                    
+                    self.logger.info("Requesting Head")
                     responseHead = await self.page.request.head(url)
-
+                    self.logger.info("Head Done")
                     if responseHead.status == 403:
-                        print("Port Banned")
+                        self.logger.error("Port Banned")
                         self.proxy.currentPortBanned()
                         continue
                     else:
                         break
-
+            
             responseHead = await self.page.request.head(url)
 
             if responseHead:
                 content_type = responseHead.headers.get("content-type", "").lower()
                 if "text/html" not in content_type:
-                    print(f"URL is not an HTML page. Detected Content-Type: {content_type}")
+                    self.logger.warning(f"URL is not an HTML page. Detected Content-Type: {content_type}")
                     return None
             else:
-                print("No Response Head")
+                self.logger.warning("No Response Head")
                 return None
 
             # Navigate to the page
@@ -105,19 +107,19 @@ class PlaywrightDriver:
             #     await self.page.wait_for_load_state("networkidle", timeout=20000)  # If timeout, wait for network idle
 
             if not responseBody or responseBody.status != 200:
-                print(f"Failed to load the URL. Status code: {responseBody.status if responseBody else 'Unknown'}")
+                self.logger.warning(f"Failed to load the URL. Status code: {responseBody.status if responseBody else 'Unknown'}")
                 return None
 
             # Ensure the page contains an <html> tag
             pageContent = await self.page.content()
             if "<html" not in pageContent.lower():
-                print(f"URL is not an HTML page (fallback check).")
+                self.logger.warning(f"URL is not an HTML page (fallback check).")
                 return None
             
             return pageContent  # Return HTML content
         
         except Exception as e:
-            print(f"Error fetching URL {url}: {e}")
+            self.logger.warning(f"Error fetching URL {url}: {e}")
             return None
         
     async def close(self):
@@ -126,3 +128,4 @@ class PlaywrightDriver:
             await self.browser.close()
         if self.playwright:
             await self.playwright.stop()
+        self.logger.info("Closed Driver")
