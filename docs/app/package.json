@@ -14,9 +14,11 @@
     "@mui/icons-material": "^6.4.3",
     "@mui/material": "^6.4.3",
     "app": "file:",
+    "file-loader": "^6.2.0",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.0.0",
     "styled-components": "^6.1.15"
   },
   "devDependencies": {
