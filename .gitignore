@@ -1,3 +1,24 @@
+# IDE
+.vscode
+
+# node
+**/node_modules
+process.env
+
+# env
+.env
+.env.*
+!.env.example
+
+# secret
+.pem
+/server/cert
+
+# Transpiled Server Files
+/src/webserver/dist
+
+# React build
+/src/client/build
 build/
 coverage/
 npm-debug.log
