@@ -6,11 +6,31 @@
     "fix": "ts-jest config:migrate jest.config.js",
     "start": "tsx webserver/dist/server.js",
     "build": "npm run build:server && npm run build:client",
-    "build:server": "cd webserver/ && tsc  --build --clean && tsc -p .",
+    "build:server": "cd webserver/ && npm install --force && tsc  --build --clean && tsc -p .",
     "build:client": "cd client/ && npm install --force && npm run build"
   },
   "dependencies": {
+    "@apollo/server": "^4.12.1",
+    "@types/compression": "^1.7.5",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.17",
     "ai-driven-event-discovery": "file:",
-    "tsx": "^4.19.4"
+    "compression": "^1.8.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "graphql-scalars": "^1.24.2",
+    "graphql-tag": "^2.12.6",
+    "morgan": "^1.10.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "tsx": "^4.19.4",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express-session": "^1.18.1",
+    "@types/morgan": "^1.9.9",
+    "@types/passport-local": "^1.0.38"
   }
 }

@@ -1,20 +1,13 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.setupSessions = setupSessions;
-exports.setupDevAuth = setupDevAuth;
-const fs_1 = __importDefault(require("fs"));
-const passport_local_1 = require("passport-local");
-const express_session_1 = __importDefault(require("express-session"));
-const uuid_1 = require("uuid");
-const assert_1 = __importDefault(require("assert"));
-const express_1 = __importDefault(require("express"));
-const path_1 = __importDefault(require("path"));
-const passport_1 = __importDefault(require("passport"));
+import fs from 'fs';
+import { Strategy as LocalStrategy } from 'passport-local';
+import session from "express-session";
+import { v4 as uuidv4 } from "uuid";
+import assert from "assert";
+import express from "express";
+import path from "path";
+import passport from 'passport';
 function mapToDevUser(userID, password) {
-    var obj = JSON.parse(fs_1.default.readFileSync(path_1.default.join(__dirname, "/data/devUsers.json"), 'utf8'));
+    var obj = JSON.parse(fs.readFileSync(path.join(__dirname, "/data/devUsers.json"), 'utf8'));
     const devUser = obj[userID];
     if (devUser === undefined || devUser["password"] !== password) {
         return undefined;
@@ -28,11 +21,11 @@ function mapToDevUser(userID, password) {
         };
     }
 }
-function setupSessions(app) {
+export function setupSessions(app) {
     const secret = process.env.SESSION_SECRET;
-    (0, assert_1.default)(secret, "SESSION_SECRET env value is null");
-    app.use((0, express_session_1.default)({
-        genid: (req) => (0, uuid_1.v4)(),
+    assert(secret, "SESSION_SECRET env value is null");
+    app.use(session({
+        genid: (req) => uuidv4(),
         secret: secret,
         resave: false,
         saveUninitialized: false,
@@ -44,10 +37,10 @@ function setupSessions(app) {
         },
     }));
 }
-function setupDevAuth(app) {
+export function setupDevAuth(app) {
     const reactAppUrl = process.env.REACT_APP_URL;
-    (0, assert_1.default)(reactAppUrl, "REACT_APP_URL env value is null");
-    const authStrategy = new passport_local_1.Strategy(async function (username, password, done) {
+    assert(reactAppUrl, "REACT_APP_URL env value is null");
+    const authStrategy = new LocalStrategy(async function (username, password, done) {
         try {
             const devUser = mapToDevUser(username, password);
             if (devUser === undefined) {
@@ -64,17 +57,17 @@ function setupDevAuth(app) {
             done(null, false, { message: 'some error' });
         }
     });
-    app.use(express_1.default.urlencoded({ extended: false }));
-    app.use(express_1.default.json());
+    app.use(express.urlencoded({ extended: false }));
+    app.use(express.json());
     app.get('/login', function (req, res, next) {
         res.render('login');
     });
-    app.post('/login/password', passport_1.default.authenticate('local', {
+    app.post('/login/password', passport.authenticate('local', {
         successRedirect: reactAppUrl,
         failureRedirect: '/login'
     }));
     app.post("/logout", (req, res) => {
-        passport_1.default.session().destroy;
+        passport.session().destroy;
         if (req.session) {
             req.session.destroy((err) => {
                 if (err) {

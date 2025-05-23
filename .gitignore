@@ -18,8 +18,9 @@ process.env
 /src/webserver/dist
 
 # React build
-/src/client/build
-build/
+/src/webui/client/dist
+/src/webui/webserver/dist
+dist/
 coverage/
 npm-debug.log
 box-node-express-skeleton-app/app/config/local.js

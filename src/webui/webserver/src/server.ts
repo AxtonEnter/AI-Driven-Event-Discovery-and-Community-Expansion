@@ -14,8 +14,8 @@ import morgan from "morgan"; //Log provider
 import bodyParser from "body-parser"; //JSON request body parser
 import process from "process";
 import compression from "compression";
-import { schema } from "./schema";
-import { setupDevAuth, setupSessions } from "./auth";
+import { schema } from "./schema.js";
+import { setupDevAuth, setupSessions } from "./auth.js";
 
 const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollographql.com"];
 
@@ -27,11 +27,13 @@ const CORS_CONFIG = {
   credentials: true,
 };
 
+const __dirname = path.resolve(path.dirname(''))
+
 /**
  * Initialize the server runner
  */
 async function startServer() {
-  require("dotenv").config({ path: __dirname + "/./../.env" });
+  process.loadEnvFile(__dirname + "/.env");
 
   //Init with Node Express
   const app = express();
@@ -78,13 +80,13 @@ async function startServer() {
     process.exit(-1);
   }
 
-  app.use("/app", express.static(path.join(__dirname, "../../client/npx browserslist@latest --update-db\n")));
+  app.use("/app", express.static(path.join(__dirname, "client/npx browserslist@latest --update-db\n")));
 
   //serves built react app files under root/app
-  app.use("/app/", express.static(path.join(__dirname, '../client/dist')));
+  app.use("/app/", express.static(path.join(__dirname, 'client/dist')));
 
   //verifies user logged in under all front-end urls and if not send to login
-  app.all("/app/*", (req, res, next) => {
+  app.all("/app/hello", (req, res, next) => {
     console.log("Hello World!")
     //Redirect to login
 
@@ -104,9 +106,9 @@ async function startServer() {
   });
 
 
-  app.get("/app/*", function (req, res) {
+  app.get("/app/", function (req, res) {
     res.header
-    res.sendFile(path.join(__dirname, "../../client/build", "index.html"));
+    res.sendFile(path.join(__dirname, "client/dist", "index.html"));
   });
 
 
@@ -123,7 +125,7 @@ async function startServer() {
   app.use(
     "/graphql",
     cors<cors.CorsRequest>(CORS_CONFIG),
-    json(),
+    //json(),
     //expressMiddleware(server, { context: context })
   );
 

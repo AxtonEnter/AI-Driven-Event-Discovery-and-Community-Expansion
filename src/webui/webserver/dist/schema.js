@@ -1,16 +1,24 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.schema = void 0;
-const graphql_scalars_1 = require("graphql-scalars");
-const schema_1 = require("@graphql-tools/schema");
+import { DateTimeResolver, DateTimeTypeDefinition, JSONResolver, } from "graphql-scalars";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { gql } from "graphql-tag";
+import { HelloSchema } from "./schemas/helloSchema.js";
+import { HelloResolver } from "./resolvers/helloResolver.js";
 const resolveFunctions = {
-    DateTime: graphql_scalars_1.DateTimeResolver,
-    JSON: graphql_scalars_1.JSONResolver,
+    DateTime: DateTimeResolver,
+    JSON: JSONResolver,
 };
-exports.schema = (0, schema_1.makeExecutableSchema)({
-    typeDefs: [],
+const jsonSchema = gql `
+  scalar JSON
+`;
+export const schema = makeExecutableSchema({
+    typeDefs: [
+        jsonSchema,
+        DateTimeTypeDefinition,
+        HelloSchema
+    ],
     resolvers: [
         resolveFunctions,
+        HelloResolver
     ]
 });
 //# sourceMappingURL=schema.js.map
