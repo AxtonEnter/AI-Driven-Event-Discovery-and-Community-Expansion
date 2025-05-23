@@ -3,15 +3,21 @@ from urllib.parse import urljoin
 import zlib
 import asyncio
 import utils
+import logging
+
 
 class WebScraper:
-    def __init__(self, driver, rootUrl, maxPages=100, sleepTime=1):
+    def __init__(self, driver, rootUrl, logger: logging.Logger, maxPages=100, sleepTime=1):
         self.driver = driver
         self.maxPages = maxPages
         self.sleepTime = sleepTime
         self.visited = set()
         self.visitedCount = 0
         self.rootUrl = rootUrl
+        self.emails = []
+        self.logger = logger
+
+        self.logger.info(f"Initialized Scraper")
     
     async def start(self):
         """
@@ -24,6 +30,10 @@ class WebScraper:
         From a URL, get the soup object with some dynamic elements removed.
         """
         html = await self.driver.getHtml(url)
+
+        # returns false upon IP ban limit
+        if html is False:
+            return None
 
         if html is None:
             return None
@@ -49,6 +59,7 @@ class WebScraper:
         # Initialize visited set
         if visited is None:
             visited = set()
+            self.logger.info(f"Starting Crawl")
         
         if url is None:
             url = self.rootUrl
@@ -62,19 +73,20 @@ class WebScraper:
             return []
         
         # Debug
-        print(url)
+        self.logger.info(f"Visiting: {url}")
+        # print(url)
         
         # Check if URL contains date and disallow past dates
-        dates = utils.urlDateCheck(url)
+        dates = utils.stringDateCheck(url)
         if len(dates) == 1:
             isPast = utils.isPastDate(dates[0])
             if isPast == None:
-                print("Date Error")
+                self.logger.warning("Date Error")
             elif isPast == True:
-                print("URL Contains Past Date")
+                self.logger.info("URL Contains Past Date")
                 return[]
             else:
-                print("URL Contains Current or Future Date")
+                self.logger.info("URL Contains Current or Future Date")
 
         # Add url to visited
         visited.add(url)
@@ -84,13 +96,20 @@ class WebScraper:
         await asyncio.sleep(self.sleepTime)
         
         # Connect to page and return html using Selenium (runs js)
-        soup = await self.getSoup(url)     
+        soup = await self.getSoup(url)
         
         if soup is None:
             return []
         
         # Get the visible text
         text = await self.soupToText(soup)
+
+        # Check for emails
+        words = text.split(" ")
+        for word in words:
+            if "@" in word:
+                if word not in self.emails:
+                    self.emails.append(word)
 
         """
         This block will be incomplete until database and message system implemented
@@ -119,8 +138,31 @@ class WebScraper:
         
         return visited
     
+    async def crawlMultiEventPage(self, url):
+        """
+        Crawls a known multi event page for several events.
+        """
+        # Debug
+        print(url)
+
+        soup = await self.getSoup(url)
+        if soup is None:
+            return []
+        
+        # Get the visible text
+        text = await self.soupToText(soup)
+
+        # Check page hash
+        textHash = utils.hashText(text)
+        if textHash == utils.getHash(url):
+            return []
+        else:
+            # Update Page Hash in DB
+            pass
+        
+        
+
     async def close(self):
         """Close the browser when done."""
         await self.driver.close()
-        ToalMb = self.driver.getTotalTraffic()
-        return [self.rootUrl, self.visitedCount, ToalMb, ToalMb / self.visitedCount]
+        self.logger.info("Closed Driver - Scraper")

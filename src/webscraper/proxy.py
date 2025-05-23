@@ -5,6 +5,7 @@ class OxylabsProxy:
         self.password = password
         self.currentPort = 8001
         self.maxPort = (8001 + ips - 1)
+        self.bannedPorts = []
 
         self.ipCheck = "https://ip.oxylabs.io/location" # The url to check proxy's IP
 
@@ -22,6 +23,12 @@ class OxylabsProxy:
 
     def getCurrentPort(self):
         return self.currentPort
+    
+    def getBannedPorts(self):
+        return self.bannedPorts
+    
+    def currentPortBanned(self):
+        self.bannedPorts.append(self.currentPort)
 
     def nextPort(self):
         """Moves proxy to the next port (IP)"""
@@ -29,5 +36,4 @@ class OxylabsProxy:
             self.currentPort = 8001
         else:
             self.currentPort += 1
-        return self.currentPort
     

@@ -1,6 +1,6 @@
 import hashlib
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # A list of helper functions used in the webscraper
 
@@ -13,25 +13,35 @@ def getHash(url):
     # Stored in database
     return False
 
-def urlDateCheck(url):
-    """Find date formats in a url (or any string)"""
-    datePattern = re.compile(r'\b(\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{4})\b')
-    dates = datePattern.findall(url)
+def stringDateCheck(str):
+    """
+    Find all dates in a string
+    Sep: - / .
+    """
+    datePattern = re.compile(r'\b(\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2})\b')
+    dates = datePattern.findall(str)
     return dates
 
 def isPastDate(dateString):
     """Checks if the given date is in the past."""
     try:
         # Determine the correct format
-        if re.match(r'^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}$', dateString):  # YYYY-MM-DD or YYYY/M/D
+        if re.match(r'^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}$', dateString):    # YYYY-MM-DD
             date_obj = datetime.strptime(dateString, "%Y-%m-%d")
-        elif re.match(r'^\d{1,2}[-/.]\d{1,2}[-/.]\d{4}$', dateString):  # MM-DD-YYYY or M/D/YYYY
+        elif re.match(r'^\d{1,2}[-/.]\d{1,2}[-/.]\d{4}$', dateString):  # MM-DD-YYYY
             date_obj = datetime.strptime(dateString, "%m-%d-%Y")
+        elif re.match(r'^\d{1,2}[-/.]\d{1,2}[-/.]\d{2}$', dateString):  # MM-DD-YY
+            date_obj = datetime.strptime(dateString, "%m-%d-%y")
         else:
             return None  # Unknown format
 
-        # Compare with today's date
-        return date_obj.date() < datetime.today().date()
+        # check if the date is within the next year (and not in the past)
+        today = datetime.today().date()
+        oneYear = today + timedelta(days=365)
+        if today < date_obj.date() < oneYear:
+            return date_obj
+        return None
+    
     except ValueError:
         return None  # Invalid date (e.g., February 30)
 
