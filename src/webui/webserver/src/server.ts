@@ -83,7 +83,9 @@ async function startServer() {
   app.use("/app", express.static(path.join(__dirname, "client/npx browserslist@latest --update-db\n")));
 
   //serves built react app files under root/app
-  app.use("/app/", express.static(path.join(__dirname, 'client/dist')));
+  app.use("/app/", express.static(path.join(__dirname, '/client/dist')));
+
+  app.use('/assets', express.static(path.join(__dirname, '/client/dist/assets')))
 
   //verifies user logged in under all front-end urls and if not send to login
   app.all("/app/hello", (req, res, next) => {
@@ -108,7 +110,7 @@ async function startServer() {
 
   app.get("/app/", function (req, res) {
     res.header
-    res.sendFile(path.join(__dirname, "client/dist", "index.html"));
+    res.sendFile(path.join(__dirname, "/client/dist", "index.html"));
   });
 
 
@@ -133,7 +135,7 @@ async function startServer() {
 
   const PORT = process.env.PORT || 3000;
 
-  console.log(process.env.ID_FORMAT);
+  console.log("dir: " + path.join(__dirname, '/client/dist'));
 
   httpServer.listen({ port: PORT }, (): void =>
     console.log(

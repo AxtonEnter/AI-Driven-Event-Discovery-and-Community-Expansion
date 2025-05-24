@@ -1,10 +1,10 @@
 import './App.css'
-import { Page } from './common/Page'
+import { Page } from './common/Page.js'
 import { Box, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead } from '@mui/material'
-import { EventItem } from './types/Event';
-import { EventRow } from './common/event/EventRow';
-import { SearchFilterOptions } from './common/search/SearchFilterOptions';
-import { EX_EVENTS } from './assets/exampleEvents';
+import { EventItem } from './types/Event.js';
+import { EventRow } from './common/event/EventRow.js';
+import { SearchFilterOptions } from './common/search/SearchFilterOptions.js';
+import { EX_EVENTS } from './assets/exampleEvents.js';
 
 function App() {
   return (
