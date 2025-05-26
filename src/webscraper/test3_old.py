@@ -27,7 +27,7 @@ def save_blocks_to_csv(blocks_with_labels, filename='event_&_non_event_data.csv'
 keyword_pattern = r'(?i)(?:' + '|'.join(re.escape(phrase) for phrase in event_keywords) + r')'
 
 def likely_event(text):
-    """Returns True if a block of text looks like an event."""
+    # Returns True if a block of text looks like an event
     patterns = [
         r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}',  # e.g., Apr 17
         r'\b\d{1,2}/\d{1,2}/\d{2,4}\b',                                            # e.g., 5/10/2025
