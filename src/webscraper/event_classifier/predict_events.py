@@ -2,11 +2,9 @@ import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # 0 = all logs, 1 = warnings, 2 = errors, 3 = fatal
 
 import tensorflow as tf
-import keras_nlp
 
 # Load the saved model
 model = tf.keras.models.load_model("saved_bert_model")
-
 
 print("====================================================================================================")
 print("\n[ Model loaded. Type or paste your text block below ]")
