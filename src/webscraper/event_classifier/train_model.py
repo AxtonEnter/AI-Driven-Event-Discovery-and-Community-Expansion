@@ -55,6 +55,9 @@ print(f"\nValidation Accuracy: {accuracy:.2f}")
 bert_classifier.save("saved_bert_model")
 
 # Step 9: Predict function
+# Commented out method for making predictions on trained model
+# The updated function is now in a separate script 'test_model_prediction.py'
+"""
 def predict_event_blocks(blocks, model):
     logits = model.predict(blocks)
     predictions = tf.argmax(logits, axis=-1).numpy()
@@ -77,3 +80,4 @@ non_event_examples = [
 
 test_blocks = event_examples + non_event_examples
 predict_event_blocks(test_blocks, bert_classifier)
+"""
