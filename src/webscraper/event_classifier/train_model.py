@@ -54,6 +54,16 @@ print(f"\nValidation Accuracy: {accuracy:.2f}")
 # Step 8: Save model
 bert_classifier.save("saved_bert_model")
 
+"""
+# Comment out the line above, and uncomment the lines below
+# if the model doesn't get saved properly for other scripts
+# like 'test_model_prediction.py' & 'predict_events.py' to
+# work properly
+"""
+# bert_classifier.save_weights("saved_bert_model")
+# print("Model weights saved to 'saved_bert_model'")
+
+
 # Step 9: Predict function
 # Commented out method for making predictions on trained model
 # The updated function is now in a separate script 'test_model_prediction.py'
