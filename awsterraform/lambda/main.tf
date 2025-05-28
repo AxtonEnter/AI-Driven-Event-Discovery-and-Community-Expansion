@@ -20,7 +20,7 @@ resource "aws_iam_role_policy_attachment" "basic_exec" {
 
 resource "aws_lambda_function" "this" {
   function_name = var.function_name
-  role          = aws_iam_role.lambda_exec.arn
+  role = var.lambda_exec_role_arn
   handler       = var.handler
   runtime       = var.runtime
   filename      = var.filename

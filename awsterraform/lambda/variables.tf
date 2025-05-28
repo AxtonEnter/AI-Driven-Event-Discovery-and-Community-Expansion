@@ -12,3 +12,6 @@ variable "environment_variables" {
   type    = map(string)
   default = {}
 }
+variable "lambda_exec_role_arn" {
+  type = string
+}
