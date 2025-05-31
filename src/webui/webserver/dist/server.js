@@ -35,7 +35,8 @@ async function startServer() {
         process.exit(-1);
     }
     app.use("/app", express.static(path.join(__dirname, "client/npx browserslist@latest --update-db\n")));
-    app.use("/app/", express.static(path.join(__dirname, 'client/dist')));
+    app.use("/app/", express.static(path.join(__dirname, '/client/dist')));
+    app.use('/assets', express.static(path.join(__dirname, '/client/dist/assets')));
     app.all("/app/hello", (req, res, next) => {
         console.log("Hello World!");
     });
@@ -47,7 +48,7 @@ async function startServer() {
     });
     app.get("/app/", function (req, res) {
         res.header;
-        res.sendFile(path.join(__dirname, "client/dist", "index.html"));
+        res.sendFile(path.join(__dirname, "/client/dist", "index.html"));
     });
     const server = new ApolloServer({
         schema,
@@ -57,7 +58,7 @@ async function startServer() {
     app.use("/graphql", cors(CORS_CONFIG));
     const httpServer = createServer(app);
     const PORT = process.env.PORT || 3000;
-    console.log(process.env.ID_FORMAT);
+    console.log("dir: " + path.join(__dirname, '/client/dist'));
     httpServer.listen({ port: PORT }, () => console.log(`🚀 GraphQL-Server is running on https://localhost:${PORT}/graphql`));
 }
 startServer();

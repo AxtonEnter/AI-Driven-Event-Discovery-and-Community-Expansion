@@ -5,9 +5,11 @@ import { useState } from "react";
 import { Check, Close, ExpandLess, ExpandMore } from "@mui/icons-material";
 import { EditEventUrlModal } from "./EditEventUrlModal";
 import { FullContentModal } from "./FullContentModal";
+import { DenialReasonModal } from "../modal/DenialReasonModal";
 
 interface Props {
   event: EventItem,
+  denialReason: string,
   handleSelect: () => void,
 }
 
@@ -16,7 +18,7 @@ export function EventRow(props: Props) {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
   const [contentModalOpen, setContentModalOpen] = useState<boolean>(false);
-
+  const [denialReasonModalOpen, setDenialReasonModalOpen] = useState<boolean>(false);
 
   return (
     <TableRow>
@@ -48,11 +50,11 @@ export function EventRow(props: Props) {
       </TableCell>
       <TableCell style={{ verticalAlign: 'top' }}>
         <Button startIcon={<Check />} color="success" variant="contained" sx={{ maxWidth: '150px', width: '70%', mb: 1 }}>Accept</Button>
-        <Button startIcon={<Close />} color="error" variant="contained" sx={{ maxWidth: '150px', width: '70%' }}>Reject</Button>
+        <Button onClick={() => setDenialReasonModalOpen(true)} startIcon={<Close />} color="error" variant="contained" sx={{ maxWidth: '150px', width: '70%' }}>Reject</Button>
       </TableCell>
       <EditEventUrlModal currentUrl={props.event.url} isOpen={editModalOpen} handleClose={() => setEditModalOpen(false)} />
       <FullContentModal htmlContent={props.event.parsedText} isOpen={contentModalOpen} handleClose={() => setContentModalOpen(false)} />
-      
+      <DenialReasonModal denialReason={props.denialReason} isOpen={denialReasonModalOpen} handleClose={() => setDenialReasonModalOpen(false)} />
     </TableRow>
   )
 }
