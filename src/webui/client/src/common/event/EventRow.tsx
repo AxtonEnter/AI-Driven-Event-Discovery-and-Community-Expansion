@@ -1,5 +1,6 @@
-import { Button, Checkbox, Collapse, Divider, Paper, Stack, TableCell, TableRow, Typography } from "@mui/material";
+import { Button, Checkbox, Chip, Collapse, Divider, Paper, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { EventItem } from "../../types/Event";
+import { Warning, WarningKey } from "../../types/Warning";
 import EditIcon from '@mui/icons-material/Edit';
 import { useState } from "react";
 import { Check, Close, ExpandLess, ExpandMore } from "@mui/icons-material";
@@ -19,6 +20,14 @@ export function EventRow(props: Props) {
   const [contentModalOpen, setContentModalOpen] = useState<boolean>(false);
   const [denialReasonModalOpen, setDenialReasonModalOpen] = useState<boolean>(false);
 
+  const showWarningTag = props.event.hasWarnings;
+
+  const tooltipMessages = (props.event.warnings || []).map(
+    (warningKey: WarningKey) => Warning[warningKey] || warningKey
+  );
+
+  const tooltipText = tooltipMessages.join(", ");
+
   return (
     <TableRow>
       <TableCell style={{ verticalAlign: 'top' }}>
@@ -30,6 +39,16 @@ export function EventRow(props: Props) {
             <a href={props.event.url}>{props.event.url}</a>
           </div>
           <Button startIcon={<EditIcon />} onClick={() => setEditModalOpen(true)}>Edit</Button>
+            {showWarningTag && (
+            <Tooltip title={tooltipText}>
+              <Chip
+                label="Warning"
+                size="small"
+                color="warning"
+                style={{ marginTop: "4px", maxWidth: "100px" }}
+              />
+            </Tooltip>
+          )}
         </Stack>
       </TableCell>
       <TableCell width={"65%"} style={{ verticalAlign: 'top' }}>
