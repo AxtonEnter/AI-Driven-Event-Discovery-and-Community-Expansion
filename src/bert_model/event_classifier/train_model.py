@@ -51,8 +51,9 @@ bert_classifier.fit(
 loss, accuracy = bert_classifier.evaluate(val_ds)
 print(f"\nValidation Accuracy: {accuracy:.2f}")
 
-# Step 8: Save model
+# Step 8: Save model & the preprocessor
 bert_classifier.save("saved_bert_model")
+preprocessor.save_preprocessor("saved_bert_preprocessor") # added this line to save the preprocessor for saving the model locally on EC2
 
 """
 # Comment out the line above, and uncomment the lines below
