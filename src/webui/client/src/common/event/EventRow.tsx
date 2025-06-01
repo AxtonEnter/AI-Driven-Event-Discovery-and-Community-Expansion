@@ -9,7 +9,6 @@ import { DenialReasonModal } from "../modal/DenialReasonModal";
 
 interface Props {
   event: EventItem,
-  denialReason: string,
   handleSelect: () => void,
 }
 
@@ -54,7 +53,7 @@ export function EventRow(props: Props) {
       </TableCell>
       <EditEventUrlModal currentUrl={props.event.url} isOpen={editModalOpen} handleClose={() => setEditModalOpen(false)} />
       <FullContentModal htmlContent={props.event.parsedText} isOpen={contentModalOpen} handleClose={() => setContentModalOpen(false)} />
-      <DenialReasonModal denialReason={props.denialReason} isOpen={denialReasonModalOpen} handleClose={() => setDenialReasonModalOpen(false)} />
+      <DenialReasonModal isOpen={denialReasonModalOpen} handleClose={() => setDenialReasonModalOpen(false)} />
     </TableRow>
   )
 }

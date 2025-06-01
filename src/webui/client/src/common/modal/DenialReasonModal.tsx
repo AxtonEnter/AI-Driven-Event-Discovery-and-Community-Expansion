@@ -3,13 +3,12 @@ import PrettyModal from "../PrettyModal"
 import { useState } from "react";
 
 interface Props {
-    denialReason: string;
     isOpen: boolean;
     handleClose: () => void;
 }
 
 export function DenialReasonModal(props: Props) {
-    const [denialReason, setDenialReason] = useState<string>(props.denialReason);
+    const [denialReason, setDenialReason] = useState<string>();
 
     return (
         <PrettyModal open={props.isOpen} onClose={props.handleClose} title="Denial Reason">
