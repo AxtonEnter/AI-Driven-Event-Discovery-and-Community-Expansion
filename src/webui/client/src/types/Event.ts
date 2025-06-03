@@ -1,6 +1,8 @@
 import { Organization } from "./Organization";
 import { User } from "./User";
 
+import { WarningKey } from "./Warning";
+
 export enum ApprovalStatus {
     APPROVED,
     REJECTED,
@@ -17,4 +19,6 @@ export type EventItem = {
   rejectedreason?: string;
   user?: User;
   organization?: Organization;
+  hasWarnings: boolean;
+  warnings: WarningKey[];
 }

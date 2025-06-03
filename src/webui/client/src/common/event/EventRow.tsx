@@ -1,5 +1,6 @@
-import { Button, Checkbox, Collapse, Divider, Paper, Snackbar, Stack, TableCell, TableRow, Typography } from "@mui/material";
+import { Button, Checkbox, Chip, Collapse, Divider, Paper, Snackbar, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { EventItem } from "../../types/Event";
+import { Warning, WarningKey } from "../../types/Warning";
 import EditIcon from '@mui/icons-material/Edit';
 import { useState } from "react";
 import { Check, Close, ExpandLess, ExpandMore } from "@mui/icons-material";
@@ -8,6 +9,7 @@ import { FullContentModal } from "./FullContentModal";
 import { useMutation } from "@apollo/client";
 import { ACCEPT_EVENT, GET_EVENTS, PEND_EVENT } from "../../queries/eventQueries";
 import { TEMP_USER } from "../../assets/TEMP_USER";
+import { DenialReasonModal } from "../modal/DenialReasonModal";
 
 interface Props {
   event: EventItem,
@@ -34,7 +36,15 @@ export function EventRow(props: Props) {
     pendEvent({ refetchQueries: [GET_EVENTS] });
     setSnackbarOpen(false);
   }
+  const [denialReasonModalOpen, setDenialReasonModalOpen] = useState<boolean>(false);
 
+  const showWarningTag = props.event.hasWarnings;
+
+  const tooltipMessages = (props.event.warnings || []).map(
+    (warningKey: WarningKey) => Warning[warningKey] || warningKey
+  );
+
+  const tooltipText = tooltipMessages.join(", ");
 
   return (
     <TableRow>
@@ -47,6 +57,16 @@ export function EventRow(props: Props) {
             <a href={props.event.url}>{props.event.url}</a>
           </div>
           <Button startIcon={<EditIcon />} onClick={() => setEditModalOpen(true)}>Edit</Button>
+            {showWarningTag && (
+            <Tooltip title={tooltipText}>
+              <Chip
+                label="Warning"
+                size="small"
+                color="warning"
+                style={{ marginTop: "4px", maxWidth: "100px" }}
+              />
+            </Tooltip>
+          )}
         </Stack>
       </TableCell>
       <TableCell width={"65%"} style={{ verticalAlign: 'top' }}>
@@ -66,10 +86,11 @@ export function EventRow(props: Props) {
       </TableCell>
       <TableCell style={{ verticalAlign: 'top' }}>
         <Button startIcon={<Check />} color="success" variant="contained" sx={{ maxWidth: '150px', width: '70%', mb: 1 }} onClick={handleAcceptClick}>Accept</Button>
-        <Button startIcon={<Close />} color="error" variant="contained" sx={{ maxWidth: '150px', width: '70%' }}>Reject</Button>
+        <Button onClick={() => setDenialReasonModalOpen(true)} startIcon={<Close />} color="error" variant="contained" sx={{ maxWidth: '150px', width: '70%' }}>Reject</Button>
       </TableCell>
       <EditEventUrlModal currentUrl={props.event.url} isOpen={editModalOpen} handleClose={() => setEditModalOpen(false)} />
       <FullContentModal htmlContent={props.event.html} isOpen={contentModalOpen} handleClose={() => setContentModalOpen(false)} />
+      <DenialReasonModal isOpen={denialReasonModalOpen} handleClose={() => setDenialReasonModalOpen(false)} />
 
       <Snackbar
         open={snackbarOpen}
