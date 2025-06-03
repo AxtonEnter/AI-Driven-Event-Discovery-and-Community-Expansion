@@ -1,17 +1,20 @@
+import { Organization } from "./Organization";
+import { User } from "./User";
+
 export enum ApprovalStatus {
     APPROVED,
     REJECTED,
 }
 
 export type EventItem = {
-    url: string;
-    tabTitle: string;
-    parsedText: string;
-    organization: Organization;
-    imageUrls: string[];
-    status: ApprovalStatus | null;
-}
-
-export type Organization = {
-    name: string
+  id: number;
+  url: string;
+  title: string;
+  html: string;
+  text?: string;
+  addedat: Date;
+  statuschangedat?: Date;
+  rejectedreason?: string;
+  user?: User;
+  organization?: Organization;
 }

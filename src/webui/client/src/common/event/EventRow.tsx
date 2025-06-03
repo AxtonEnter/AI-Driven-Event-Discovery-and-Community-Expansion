@@ -1,10 +1,13 @@
-import { Button, Checkbox, Collapse, Divider, Paper, Stack, TableCell, TableRow, Typography } from "@mui/material";
+import { Button, Checkbox, Collapse, Divider, Paper, Snackbar, Stack, TableCell, TableRow, Typography } from "@mui/material";
 import { EventItem } from "../../types/Event";
 import EditIcon from '@mui/icons-material/Edit';
 import { useState } from "react";
 import { Check, Close, ExpandLess, ExpandMore } from "@mui/icons-material";
 import { EditEventUrlModal } from "./EditEventUrlModal";
 import { FullContentModal } from "./FullContentModal";
+import { useMutation } from "@apollo/client";
+import { ACCEPT_EVENT, GET_EVENTS, PEND_EVENT } from "../../queries/eventQueries";
+import { TEMP_USER } from "../../assets/TEMP_USER";
 
 interface Props {
   event: EventItem,
@@ -16,6 +19,21 @@ export function EventRow(props: Props) {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
   const [contentModalOpen, setContentModalOpen] = useState<boolean>(false);
+  const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
+
+
+  const [acceptEvent] = useMutation(ACCEPT_EVENT, { variables: { id: props.event.id, username: TEMP_USER.username } });
+  const [pendEvent] = useMutation(PEND_EVENT, { variables: { id: props.event.id } });
+
+  function handleAcceptClick() {
+    acceptEvent({ refetchQueries: [GET_EVENTS] });
+    setSnackbarOpen(true);
+  }
+
+  function handleAcceptUndoClick() {
+    pendEvent({ refetchQueries: [GET_EVENTS] });
+    setSnackbarOpen(false);
+  }
 
 
   return (
@@ -32,7 +50,7 @@ export function EventRow(props: Props) {
         </Stack>
       </TableCell>
       <TableCell width={"65%"} style={{ verticalAlign: 'top' }}>
-        <Typography variant="h5">{props.event.tabTitle}</Typography>
+        <Typography variant="h5">{props.event.title}</Typography>
         <Divider />
         <Button onClick={() => setContentModalOpen(true)} variant="contained">Show HTML Content</Button>
         <Typography variant="body2">
@@ -42,17 +60,24 @@ export function EventRow(props: Props) {
         </Typography>
         <Collapse in={expanded}>
           <Paper>
-            {props.event.parsedText}
+            {props.event.text ?? "No Text."}
           </Paper>
         </Collapse>
       </TableCell>
       <TableCell style={{ verticalAlign: 'top' }}>
-        <Button startIcon={<Check />} color="success" variant="contained" sx={{ maxWidth: '150px', width: '70%', mb: 1 }}>Accept</Button>
+        <Button startIcon={<Check />} color="success" variant="contained" sx={{ maxWidth: '150px', width: '70%', mb: 1 }} onClick={handleAcceptClick}>Accept</Button>
         <Button startIcon={<Close />} color="error" variant="contained" sx={{ maxWidth: '150px', width: '70%' }}>Reject</Button>
       </TableCell>
       <EditEventUrlModal currentUrl={props.event.url} isOpen={editModalOpen} handleClose={() => setEditModalOpen(false)} />
-      <FullContentModal htmlContent={props.event.parsedText} isOpen={contentModalOpen} handleClose={() => setContentModalOpen(false)} />
-      
+      <FullContentModal htmlContent={props.event.html} isOpen={contentModalOpen} handleClose={() => setContentModalOpen(false)} />
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        message="Event marked as Accepted"
+        action={<Button onClick={handleAcceptUndoClick} color="secondary" variant="text">Undo</Button>}
+      />
     </TableRow>
   )
 }

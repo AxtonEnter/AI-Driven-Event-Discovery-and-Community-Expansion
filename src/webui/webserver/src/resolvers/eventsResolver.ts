@@ -1,5 +1,5 @@
 import { EventsRow } from "../db/tables.js";
-import { getEvents, rejectEvent } from "../repositories/eventsRepo.js"
+import { acceptEvent, getEvents, pendEvent, rejectEvent } from "../repositories/eventsRepo.js"
 import { getOrganizationByID } from "../repositories/organizationRepo.js";
 import { getUserByUsername } from "../repositories/userRepo.js";
 
@@ -33,8 +33,13 @@ export const EventsResolver = {
     },
     acceptEvent: async (
       _parent: any,
-      args: {id: number, username: string, reason: string}) => {
-        return rejectEvent(args.id, args.username, args.reason);
+      args: {id: number, username: string}) => {
+        return acceptEvent(args.id, args.username);
+    },
+    pendEvent: async (
+      _parent: any,
+      args: {id: number}) => {
+        return pendEvent(args.id);
     },
   }
 }

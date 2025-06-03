@@ -30,3 +30,21 @@ export const GET_EVENTS = gql`
     }
   }
 `;
+
+export const REJECT_EVENT = gql`
+  mutation RejectEvent($id: ID!, $reason: String!) {
+    rejectEvent(id: $id, reason: $reason)
+  }
+`;
+
+export const ACCEPT_EVENT = gql`
+  mutation AcceptEvent($id: ID!) {
+    acceptEvent(id: $id)
+  }
+`;
+
+export const PEND_EVENT = gql`
+  mutation PendEvent($id: ID!) {
+    pendEvent(id: $id)
+  }
+`;

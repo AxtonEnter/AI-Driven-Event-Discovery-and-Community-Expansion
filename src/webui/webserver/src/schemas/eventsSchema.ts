@@ -21,5 +21,6 @@ export const EventsSchema = gql`
   type Mutation {
     rejectEvent(id: ID!, reason: String!): Boolean
     acceptEvent(id: ID!): Boolean
+    pendEvent(id: ID!): Boolean
   }
 `

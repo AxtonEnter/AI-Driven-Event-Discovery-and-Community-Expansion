@@ -13,3 +13,6 @@ export async function acceptEvent(id: number, username: string): Promise<void> {
   await knex("events").update({user: username, status: 1}).where({id});
 }
 
+export async function pendEvent(id: number): Promise<void> {
+  await knex("events").update({user: null, status: 0}).where({id});
+}
