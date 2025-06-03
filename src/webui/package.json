@@ -6,8 +6,11 @@
     "fix": "ts-jest config:migrate jest.config.js",
     "start": "tsx webserver/dist/server.js",
     "build": "npm run build:server && npm run build:client",
+    "build:ps": "(npm run build:server:ps) && (npm run build:client:ps)",
     "build:server": "cd webserver/ && npm install --force && tsc  --build --clean && tsc -p .",
-    "build:client": "cd client/ && npm install --force && npm run build"
+    "build:server:ps": "(cd webserver/) -and (npm install --force) -and (tsc --build) -and (tsc -p .)",
+    "build:client": "cd client/ && npm install --force && npm run build",
+    "build:client:ps": "(cd client/) -and n(pm install --force) -and (npm run build)"
   },
   "dependencies": {
     "@apollo/server": "^4.12.1",
@@ -25,6 +28,7 @@
     "morgan": "^1.10.0",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
+    "pg": "^8.16.0",
     "tsx": "^4.19.4",
     "uuid": "^11.1.0"
   },
