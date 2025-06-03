@@ -9,7 +9,7 @@ export interface EventsRow {
   statuschangedat?: Date;
   rejectedreason?: string;
   user?: string;
-  organization?: string;
+  organization?: number;
 }
 
 export interface EventsTagsRow {
