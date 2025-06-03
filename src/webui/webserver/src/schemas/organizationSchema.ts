@@ -8,7 +8,7 @@ export const OrganizationSchema = gql`
     koa_url: String!
     org_url: String!
     org_events_url: String
-    region: String
+    region: Region
     }
 
   type Query {

@@ -5,7 +5,6 @@
 
 import express from "express";
 import { ApolloServer } from "@apollo/server";
-import { expressMiddleware } from "@apollo/server/express4";
 import { createServer } from "http";
 import cors from "cors";
 import json from "body-parser";
@@ -16,6 +15,10 @@ import process from "process";
 import compression from "compression";
 import { schema } from "./schema.js";
 import { setupDevAuth, setupSessions } from "./auth.js";
+import fs from "fs"
+import https from "https"
+import { expressMiddleware } from "@as-integrations/express5";
+import { ApolloContext } from "./context.js";
 
 const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollographql.com"];
 
@@ -26,6 +29,13 @@ const CORS_CONFIG = {
   origin: process.env.REACT_APP_ORIGIN,
   credentials: true,
 };
+
+// Load SSL certificates
+const credentials = {
+  key: fs.readFileSync("./cert/private-key.pem"),
+  cert: fs.readFileSync("./cert/certificate.pem"),
+};
+
 
 const __dirname = path.resolve(path.dirname(''))
 
@@ -39,7 +49,7 @@ async function startServer() {
   const app = express();
 
   //Configure CORS
-  app.use(cors(CORS_CONFIG));
+  app.use(cors());
 
   //Active File compression 
   app.use(compression());
@@ -74,8 +84,8 @@ async function startServer() {
    */
   else if (process.env.NODE_ENV === "production") {
     throw Error("Unimplemented");
-  } 
-  
+  }
+
   else {
     process.exit(-1);
   }
@@ -127,11 +137,14 @@ async function startServer() {
   app.use(
     "/graphql",
     cors<cors.CorsRequest>(CORS_CONFIG),
-    //json(),
-    //expressMiddleware(server, { context: context })
+    express.json(),
+    expressMiddleware(server,
+      {
+        context: async ({ req }) => ({ token: req.headers.token }),
+      }),
   );
 
-  const httpServer = createServer(app);
+  const httpServer = https.createServer(credentials, app);
 
   const PORT = process.env.PORT || 3000;
 

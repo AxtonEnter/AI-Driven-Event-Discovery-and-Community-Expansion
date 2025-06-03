@@ -13,6 +13,8 @@ import { UserResolver } from "./resolvers/userResolver.js";
 import { OrganizationResolver } from "./resolvers/organizationResolver.js";
 import { EventsResolver } from "./resolvers/eventsResolver.js";
 import { EventsSchema } from "./schemas/eventsSchema.js";
+import { RegionSchema } from "./schemas/regionSchema.js";
+import { RegionResolver } from "./resolvers/regionResolver.js";
 
 
 // for custom scalars such as Date
@@ -33,6 +35,7 @@ export const schema = makeExecutableSchema({
     UserSchema,
     OrganizationSchema,
     EventsSchema,
+    RegionSchema
   ],
   resolvers: [ 
     resolveFunctions,
@@ -40,5 +43,6 @@ export const schema = makeExecutableSchema({
     UserResolver,
     OrganizationResolver,
     EventsResolver,
+    RegionResolver
   ]
 });
