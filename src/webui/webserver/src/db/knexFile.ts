@@ -1,7 +1,10 @@
 import type { Knex } from "knex";
 import path from "path";
+import process from "process";
 
-require("dotenv").config({ path: path.resolve(path.dirname('')) + "/./../../.env" });
+const __dirname = path.resolve(path.dirname(''))
+
+process.loadEnvFile(__dirname + "/.env");
 
 // Update with your config settings.
 
