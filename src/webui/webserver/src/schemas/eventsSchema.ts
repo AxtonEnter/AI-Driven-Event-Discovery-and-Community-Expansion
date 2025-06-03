@@ -16,6 +16,9 @@ export const EventsSchema = gql`
 
   type Query {
     events: [Event]
+  }
+
+  type Mutation {
     rejectEvent(id: ID!, reason: String!): Boolean
     acceptEvent(id: ID!): Boolean
   }
