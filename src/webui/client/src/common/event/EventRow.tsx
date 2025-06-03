@@ -7,7 +7,7 @@ import { Check, Close, ExpandLess, ExpandMore } from "@mui/icons-material";
 import { EditEventUrlModal } from "./EditEventUrlModal";
 import { FullContentModal } from "./FullContentModal";
 import { useMutation } from "@apollo/client";
-import { ACCEPT_EVENT, GET_EVENTS, PEND_EVENT } from "../../queries/eventQueries";
+import { ACCEPT_EVENT, GET_EVENTS, PEND_EVENT, REJECT_EVENT } from "../../queries/eventQueries";
 import { TEMP_USER } from "../../assets/TEMP_USER";
 import { DenialReasonModal } from "../modal/DenialReasonModal";
 
@@ -21,22 +21,34 @@ export function EventRow(props: Props) {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
   const [contentModalOpen, setContentModalOpen] = useState<boolean>(false);
+  const [denialReasonModalOpen, setDenialReasonModalOpen] = useState<boolean>(false);
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
+  const [rejectSnackbarOpen, setRejectSnackbarOpen] = useState<boolean>(false);
+
 
 
   const [acceptEvent] = useMutation(ACCEPT_EVENT, { variables: { id: props.event.id, username: TEMP_USER.username } });
+  const [rejectEvent] = useMutation(REJECT_EVENT);
   const [pendEvent] = useMutation(PEND_EVENT, { variables: { id: props.event.id } });
 
   function handleAcceptClick() {
     acceptEvent({ refetchQueries: [GET_EVENTS] });
     setSnackbarOpen(true);
   }
-
   function handleAcceptUndoClick() {
     pendEvent({ refetchQueries: [GET_EVENTS] });
     setSnackbarOpen(false);
   }
-  const [denialReasonModalOpen, setDenialReasonModalOpen] = useState<boolean>(false);
+
+  function handleRejectSubmitClick(reason: string) {
+    rejectEvent({ refetchQueries: [GET_EVENTS], variables: { id: props.event.id, username: TEMP_USER.username, reason } });
+    setRejectSnackbarOpen(true);
+    setDenialReasonModalOpen(false);
+  }
+  function handleRejectUndoClick() {
+    pendEvent({ refetchQueries: [GET_EVENTS] });
+    setRejectSnackbarOpen(false);
+  }
 
   const showWarningTag = props.event.hasWarnings;
 
@@ -90,7 +102,7 @@ export function EventRow(props: Props) {
       </TableCell>
       <EditEventUrlModal currentUrl={props.event.url} isOpen={editModalOpen} handleClose={() => setEditModalOpen(false)} />
       <FullContentModal htmlContent={props.event.html} isOpen={contentModalOpen} handleClose={() => setContentModalOpen(false)} />
-      <DenialReasonModal isOpen={denialReasonModalOpen} handleClose={() => setDenialReasonModalOpen(false)} />
+      <DenialReasonModal isOpen={denialReasonModalOpen} handleClose={() => setDenialReasonModalOpen(false)} handleSubmit={handleRejectSubmitClick} />
 
       <Snackbar
         open={snackbarOpen}
@@ -98,6 +110,13 @@ export function EventRow(props: Props) {
         onClose={() => setSnackbarOpen(false)}
         message="Event marked as Accepted"
         action={<Button onClick={handleAcceptUndoClick} color="secondary" variant="text">Undo</Button>}
+      />
+      <Snackbar
+        open={rejectSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setRejectSnackbarOpen(false)}
+        message="Event marked as Rejected"
+        action={<Button onClick={handleRejectUndoClick} color="secondary" variant="text">Undo</Button>}
       />
     </TableRow>
   )

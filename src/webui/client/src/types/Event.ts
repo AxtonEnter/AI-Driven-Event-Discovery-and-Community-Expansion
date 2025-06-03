@@ -19,6 +19,6 @@ export type EventItem = {
   rejectedreason?: string;
   user?: User;
   organization?: Organization;
-  hasWarnings: boolean;
-  warnings: WarningKey[];
+  hasWarnings?: boolean;
+  warnings?: WarningKey[];
 }

@@ -1,7 +1,11 @@
 import { Button, Stack } from "@mui/material"
 import { useRef, useState } from "react"
 
-export function CsvUpload() {
+type CsvUploadProps = {
+    handleUpload: (file: File) => void
+}
+
+export function CsvUpload(props: CsvUploadProps) {
     const [file, setFile] = useState<File | null>(null);
     const inputFile = useRef<HTMLInputElement | null>(null);
 
@@ -13,6 +17,7 @@ export function CsvUpload() {
         const files = e.target.files;
         if (files && files.length > 0) {
             setFile(files[0]);
+            if (file) props.handleUpload(file);
         }
         else {
             setFile(null);

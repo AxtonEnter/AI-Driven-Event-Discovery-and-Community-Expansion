@@ -1,12 +1,13 @@
 import './App.css'
 import { Page } from './common/Page.js'
-import { Box, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead } from '@mui/material'
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead } from '@mui/material'
 import { EventItem } from './types/Event.js';
 import { EventRow } from './common/event/EventRow.js';
 import { SearchFilterOptions } from './common/search/SearchFilterOptions.js';
 import { useQuery } from '@apollo/client';
 import { GET_EVENTS } from './queries/eventQueries.js';
 import RequestWrapper from './common/RequestWrapper.js';
+import { CsvUpload } from './common/csv/CsvUpload.js';
 
 function Events() {
   const eventsResult = useQuery(GET_EVENTS);
@@ -14,11 +15,12 @@ function Events() {
   return (
     <Page>
       <Box>
-        <Stack direction={"row"} justifyContent={"center"} pb={2} pt={4}>
-          <Button color='info' variant='outlined'>Upload CSV</Button>
-        </Stack>
-
+        <CsvUpload handleUpload={function (file: File): void {
+          console.log(file)
+          throw new Error('Function not implemented.');
+        }} />
         <SearchFilterOptions />
+
       </Box>
       <Box>
         <TableContainer>
