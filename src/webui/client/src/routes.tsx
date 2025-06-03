@@ -1,11 +1,12 @@
 import { BrowserRouter, Routes, Route } from "react-router";
-import App from "./App.tsx";
-import { createRoot } from "react-dom/client";
+import Events from "./Events.tsx";
 
-createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<App />} />
-    </Routes>
-  </BrowserRouter>
-);
+export default function AppRoutes() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/app" element={<Events />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
