@@ -4,9 +4,19 @@ import { Box, Button, Stack, Table, TableBody, TableCell, TableContainer, TableH
 import { EventItem } from './types/Event.js';
 import { EventRow } from './common/event/EventRow.js';
 import { SearchFilterOptions } from './common/search/SearchFilterOptions.js';
-import { EX_EVENTS } from './assets/exampleEvents.js';
+import { ApolloClient, InMemoryCache, useQuery } from '@apollo/client';
+import { GET_EVENTS } from './queries/eventQueries.js';
+import RequestWrapper from './common/RequestWrapper.js';
 
 function App() {
+  const apolloClient = new ApolloClient({
+    uri: process.env.REACT_APP_GRAPHQL_URL ?? "https://localhost:3000/graphql",
+    credentials: "include",
+    cache: new InMemoryCache(),
+  });
+
+  const eventsResult = useQuery(GET_EVENTS);
+
   return (
     <Page>
       <Box>
@@ -19,17 +29,19 @@ function App() {
       <Box>
         <TableContainer>
           <Table>
-            <TableHead sx={{position: "sticky"}}>
+            <TableHead sx={{ position: "sticky" }}>
               <TableCell></TableCell>
               <TableCell>URL</TableCell>
               <TableCell>Content</TableCell>
               <TableCell>Actions</TableCell>
             </TableHead>
-            <TableBody>
-              {EX_EVENTS.map((eventItem: EventItem) => (
-                <EventRow event={eventItem} handleSelect={() => {}} />
-              ))}
-            </TableBody>
+            <RequestWrapper loading={eventsResult.loading} error={eventsResult.error}>
+              <TableBody>
+                {eventsResult.data?.events.map((eventItem: EventItem) => (
+                  <EventRow event={eventItem} handleSelect={() => { }} />
+                ))}
+              </TableBody>
+            </RequestWrapper>
           </Table>
         </TableContainer>
       </Box>
