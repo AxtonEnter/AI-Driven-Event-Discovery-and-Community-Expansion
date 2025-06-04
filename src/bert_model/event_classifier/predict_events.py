@@ -5,6 +5,7 @@ import tensorflow as tf
 import keras_nlp
 import numpy as np
 
+'''
 # This is for downloading the model via the internet & NOT locally
 # Recreates the model architecture
 preprocessor = keras_nlp.models.BertPreprocessor.from_preset("local_bert_preprocessor")
@@ -17,13 +18,14 @@ model = keras_nlp.models.BertClassifier.from_preset(
 
 # Loads the weights
 model.load_weights("saved_weights").expect_partial()
+'''
 
 
 '''
 # This loads the model that is local to the EC2
 '''
 # Load model from local path
-#model = tf.keras.models.load_model("saved_bert_model")
+model = tf.keras.models.load_model("saved_bert_model")
 
 def split_into_blocks(text):
     """Split input text into blocks using paragraph-like breaks."""
