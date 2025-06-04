@@ -1,6 +1,7 @@
 import { EventsRow } from "../db/tables.js";
 import { acceptEvent, getEvents, pendEvent, rejectEvent } from "../repositories/eventsRepo.js"
 import { getOrganizationByID } from "../repositories/organizationRepo.js";
+import { getTagsByEvent } from "../repositories/TagRepo.js";
 import { getUserByUsername } from "../repositories/userRepo.js";
 
 export const EventsResolver = {
@@ -14,6 +15,11 @@ export const EventsResolver = {
       parent: EventsRow,
       _args: any) => {
         return parent.organization && await getOrganizationByID(parent.organization);
+    },
+    tags: async (
+      parent: EventsRow,
+      _args: any) => {
+        return await getTagsByEvent(parent.id);
     },
   },
 

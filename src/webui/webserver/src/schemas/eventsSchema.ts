@@ -12,6 +12,7 @@ export const EventsSchema = gql`
     rejectedreason: String
     user: User
     organization: Organization
+    tags: [Tag]
     }
 
   type Query {

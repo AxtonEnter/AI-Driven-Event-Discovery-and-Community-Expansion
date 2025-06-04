@@ -1,6 +1,5 @@
 import { Button, Checkbox, Chip, Collapse, Divider, Paper, Snackbar, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { EventItem } from "../../types/Event";
-import { Warning, WarningKey } from "../../types/Warning";
 import EditIcon from '@mui/icons-material/Edit';
 import { useState } from "react";
 import { Check, Close, ExpandLess, ExpandMore } from "@mui/icons-material";
@@ -10,6 +9,7 @@ import { useMutation } from "@apollo/client";
 import { ACCEPT_EVENT, GET_EVENTS, PEND_EVENT, REJECT_EVENT } from "../../queries/eventQueries";
 import { TEMP_USER } from "../../assets/TEMP_USER";
 import { DenialReasonModal } from "../modal/DenialReasonModal";
+import { Tag } from "../../types/Tag";
 
 interface Props {
   event: EventItem,
@@ -50,10 +50,10 @@ export function EventRow(props: Props) {
     setRejectSnackbarOpen(false);
   }
 
-  const showWarningTag = props.event.hasWarnings;
+  const showWarningTag = props.event.tags.length > 0;
 
-  const tooltipMessages = (props.event.warnings || []).map(
-    (warningKey: WarningKey) => Warning[warningKey] || warningKey
+  const tooltipMessages = (props.event.tags ?? []).map(
+    (tag: Tag) => tag.desc
   );
 
   const tooltipText = tooltipMessages.join(", ");

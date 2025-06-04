@@ -1,7 +1,6 @@
 import { Organization } from "./Organization";
+import { Tag } from "./Tag";
 import { User } from "./User";
-
-import { WarningKey } from "./Warning";
 
 export enum ApprovalStatus {
     APPROVED,
@@ -19,6 +18,5 @@ export type EventItem = {
   rejectedreason?: string;
   user?: User;
   organization?: Organization;
-  hasWarnings?: boolean;
-  warnings?: WarningKey[];
+  tags: Tag[]
 }
