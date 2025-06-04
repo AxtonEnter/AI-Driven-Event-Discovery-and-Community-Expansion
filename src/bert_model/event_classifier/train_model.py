@@ -52,7 +52,7 @@ loss, accuracy = bert_classifier.evaluate(val_ds)
 print(f"\nValidation Accuracy: {accuracy:.2f}")
 
 # Step 8: Save model
-bert_classifier.save("saved_bert_model")
+bert_classifier.save("saved_bert_model")  # This saves the entire model
 
 """
 # Comment out the line above, and uncomment the lines below
@@ -60,9 +60,11 @@ bert_classifier.save("saved_bert_model")
 # like 'test_model_prediction.py' & 'predict_events.py' to
 # work properly
 """
-# bert_classifier.save_weights("saved_bert_model")
-# print("Model weights saved to 'saved_bert_model'")
+#bert_classifier.save_weights("saved_weights")
 
+# Save the architecture presets locally for EC2
+#bert_classifier.save("local_bert_classifier")
+#print("Model weights and preset files saved successfully.")
 
 # Step 9: Predict function
 # Commented out method for making predictions on trained model
