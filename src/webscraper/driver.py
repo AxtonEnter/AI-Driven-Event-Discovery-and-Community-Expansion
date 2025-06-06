@@ -98,7 +98,9 @@ class PlaywrightDriver:
                             return None
 
             # Navigate to the page
+            self.logger.info("Requesting Body")
             responseBody = await self.page.goto(url, timeout=20000, wait_until="networkidle")
+            self.logger.info("Body Done")
             # try:
             #     await self.page.wait_for_load_state("load", timeout=10000)  # Wait for load trigger
             # except:

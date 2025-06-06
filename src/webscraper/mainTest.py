@@ -11,7 +11,7 @@ URLs = [
     "https://www.pumcny.org/",
     "https://www.stjohnsliving.org/"]
 
-# URLs = ["https://www.punsonline.com/"]
+URLs = ["https://www.punsonline.com/"]
 
 async def testScraperManager():
     manager = scraperManager(concurrentScrapers=10, urls=URLs, proxyEnable=True)
