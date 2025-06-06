@@ -1,0 +1,9 @@
+root directory/
+|----saved_bert_model/
+|     |----assets/
+|     |----variables/
+|     |     |----variables.data-0000-of-00001
+|     |     |----variables.index
+|     |----keras_metadata.pb
+|     |----save_model.pb
+|----predict_events.py
