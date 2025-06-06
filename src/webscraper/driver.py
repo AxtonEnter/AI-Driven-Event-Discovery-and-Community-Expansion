@@ -86,18 +86,16 @@ class PlaywrightDriver:
                         self.proxy.currentPortBanned()
                         continue
                     else:
-                        break
-            
-            responseHead = await self.page.request.head(url)
-
-            if responseHead:
-                content_type = responseHead.headers.get("content-type", "").lower()
-                if "text/html" not in content_type:
-                    self.logger.warning(f"URL is not an HTML page. Detected Content-Type: {content_type}")
-                    return None
-            else:
-                self.logger.warning("No Response Head")
-                return None
+                        if responseHead:
+                            content_type = responseHead.headers.get("content-type", "").lower()
+                            if "text/html" not in content_type:
+                                self.logger.warning(f"URL is not an HTML page. Detected Content-Type: {content_type}")
+                                return None
+                            else:
+                                break
+                        else:
+                            self.logger.warning("No Response Head")
+                            return None
 
             # Navigate to the page
             responseBody = await self.page.goto(url, timeout=20000, wait_until="networkidle")
