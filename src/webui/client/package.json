@@ -17,6 +17,7 @@
     "@mui/material": "^6.4.5",
     "aws-amplify": "^6.14.4",
     "client": "file:",
+    "date-fns": "^4.1.0",
     "graphql": "^16.10.0",
     "moment": "^2.30.1",
     "react": "^19.0.0",

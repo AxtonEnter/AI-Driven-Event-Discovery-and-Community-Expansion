@@ -1,5 +1,5 @@
 import { EventsRow } from "../db/tables.js";
-import { acceptEvent, getEvents, pendEvent, rejectEvent } from "../repositories/eventsRepo.js"
+import { acceptEvent, EventFilter, getEvents, pendEvent, rejectEvent } from "../repositories/eventsRepo.js"
 import { getOrganizationByID } from "../repositories/organizationRepo.js";
 import { getTagsByEvent } from "../repositories/TagRepo.js";
 import { getUserByUsername } from "../repositories/userRepo.js";
@@ -26,8 +26,12 @@ export const EventsResolver = {
   Query: {
     events: async (
       _parent: any,
-      _args: any) => {
-        return await getEvents();
+      args: {searchText?: string, filters?: EventFilter}) => {
+        return {
+          pending: await getEvents(args.searchText, {status: "0", ...args.filters}),
+          accepted: await getEvents(args.searchText, {status: "1", ...args.filters}),
+          rejected: await getEvents(args.searchText, {status: "2", ...args.filters}),
+        };
     },
   },
 

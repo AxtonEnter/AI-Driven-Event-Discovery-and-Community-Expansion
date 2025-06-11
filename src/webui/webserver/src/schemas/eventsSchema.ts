@@ -13,10 +13,23 @@ export const EventsSchema = gql`
     user: User
     organization: Organization
     tags: [Tag]
-    }
+  }
+
+  input EventFilter {
+    url: String
+    title: String
+    organization: String
+    text: String
+  }
+
+  type SeparatedEvents {
+    pending: [Event]
+    accepted: [Event]
+    rejected: [Event]
+  }
 
   type Query {
-    events: [Event]
+    events(searchText: String, filters: EventFilter): SeparatedEvents
   }
 
   type Mutation {

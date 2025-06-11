@@ -1,22 +1,35 @@
 import { ExpandMore } from "@mui/icons-material";
-import { Box, Button, Card, Collapse, FormGroup, IconButton, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { Box, Button, Card, Collapse, FormGroup, IconButton, Stack, TextField, Typography } from "@mui/material";
 import { ChangeEvent, useEffect, useState } from "react";
 import SearchBar from "./SearchBar";
 import { useLocation, useNavigate } from "react-router";
 import CloseIcon from "@mui/icons-material/Close";
+import { endOfDay, parse, startOfDay } from "date-fns";
+import { LazyQueryExecFunction, OperationVariables } from "@apollo/client";
 
 interface EventSearchFilters {
   url?: string;
   title?: string;
   organization?: string;
-  shortDesc?: string;
-  details?: string;
+  text?: string;
 
-  status: "only-pending" | "only-rejected" | "both"
+  // status: "only-pending" | "only-rejected" | "both"
+}
+
+function parseDateForQuery(
+  dateString: string,
+  dayShifter: (d: Date) => Date
+): Date | null {
+  if (!dateString) return null;
+  return dayShifter(parse(dateString, "yyyy-MM-dd", new Date()));
+}
+
+interface SearchFilterOptionsProps {
+  query: LazyQueryExecFunction<any, OperationVariables>;
 }
 
 
-export function SearchFilterOptions() {
+export function SearchFilterOptions(props: SearchFilterOptionsProps) {
   const navigate = useNavigate();
   const { search } = useLocation();
 
@@ -25,12 +38,24 @@ export function SearchFilterOptions() {
   const [stopDateString, setStopDateString] = useState<string>();
   const [searchText, setSearchText] = useState<string>("");
   const [expanded, setExpanded] = useState(false);
-  const [filters, setFilters] = useState<EventSearchFilters>({status: "both"});
+  const [filters, setFilters] = useState<EventSearchFilters>({});
 
 
-  function handleRejectsSwitchChange(e: any) {
-    setFilters({ ...filters, status: e.target.value });
-    setUrlParam("rejects", e.target.value);
+  // function handleRejectsSwitchChange(e: any) {
+  //   setFilters({ ...filters, status: e.target.value });
+  //   setUrlParam("rejects", e.target.value);
+  // }
+
+  function handleSubmit() {
+    const params = new URLSearchParams(search);
+    params.set("q", searchText);
+    if (filters) {
+      filters.url && params.set("url", filters.url);
+      filters.title && params.set("title", filters.title);
+      filters.organization && params.set("org", filters.organization);
+      filters.text && params.set("text", filters.text);
+    }
+    navigate("?" + params, { replace: true });
   }
 
 
@@ -39,27 +64,36 @@ export function SearchFilterOptions() {
     const startDate = searchParams.get("start") ?? "";
     const stopDate = searchParams.get("stop") ?? "";
     const queryString = searchParams.get("q") ?? "";
-    const status = (searchParams.get("rejects") as "only-pending" | "only-rejected" | "both") ?? "both";
+    const filters = {
+      url: searchParams.get("url") ?? undefined,
+      title: searchParams.get("title") ?? undefined,
+      organization: searchParams.get("org") ?? undefined,
+      text: searchParams.get("text") ?? undefined,
+    }
+    // const status = (searchParams.get("rejects") as "only-pending" | "only-rejected" | "both") ?? "both";
 
     setStartDateString(startDate);
     setStopDateString(stopDate);
     setSearchText(queryString);
-    setFilters({...filters, status});
+    setFilters({ ...filters });
 
-    // query({
-    //   variables: {
-    //     startDate: parseDateForQuery(startDate, startOfDay),
-    //     stopDate: parseDateForQuery(stopDate, endOfDay),
-    //     searchText: queryString,
-    //     filters: filters
-    //   },
-    // });
+    console.log(filters)
+
+    props.query({
+      variables: {
+        startDate: parseDateForQuery(startDate, startOfDay),
+        stopDate: parseDateForQuery(stopDate, endOfDay),
+        searchText: queryString,
+        filters: filters
+      },
+      pollInterval: 2000
+    });
   }, [search]);
 
   const setUrlParam = (paramName: string, paramValue: string) => {
     const params = new URLSearchParams(search);
     params.set(paramName, paramValue);
-    navigate("/admin/history?" + params, { replace: true });
+    navigate("?" + params, { replace: true });
   };
 
   const handleDateChange =
@@ -71,11 +105,10 @@ export function SearchFilterOptions() {
 
   const handleClear = () => {
     setSearchText("");
-    navigate("/admin/history", { replace: true });
+    navigate("", { replace: true });
   };
 
-  const showClearButton =
-    startDateString || stopDateString || search.includes("q=");
+  const showClearButton = search.includes("q=");
 
 
   return (
@@ -111,7 +144,7 @@ export function SearchFilterOptions() {
             <CloseIcon />
           </IconButton>
         )}
-        <Button onClick={() => setUrlParam("q", searchText)} variant="contained" color="primary">Search</Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary">Search</Button>
       </Stack>
       <Card sx={{ p: "1em", background: 'none', border: 'none' }}>
         <Stack direction={"row"} onClick={() => setExpanded(!expanded)}>
@@ -131,27 +164,21 @@ export function SearchFilterOptions() {
               </Typography>
               <Stack direction={"column"} flexWrap={"wrap"} height={"10em"}>
                 <Stack direction={"column"} flexWrap={"wrap"} maxWidth={500}>
-                  <TextField variant="standard" label="Url" value={filters.url} onChange={(e) => setFilters({...filters, url: e.target.value})} fullWidth />
-                  <TextField variant="standard" label="Title" value={filters.title} onChange={(e) => setFilters({...filters, title: e.target.value})} fullWidth />
-                  <TextField variant="standard" label="Organization" value={filters.title} onChange={(e) => setFilters({...filters, organization: e.target.value})} fullWidth />
+                  <TextField variant="standard" label="Url" value={filters.url} onChange={(e) => { setFilters({ ...filters, url: e.target.value }); }} fullWidth />
+                  <TextField variant="standard" label="Title" value={filters.title} onChange={(e) => { setFilters({ ...filters, title: e.target.value }); }} fullWidth />
+                  <TextField variant="standard" label="Organization" value={filters.title} onChange={(e) => { setFilters({ ...filters, organization: e.target.value }); }} fullWidth />
                 </Stack>
                 <Stack direction={"column"} flexWrap={"wrap"} ml={5}>
                   <Stack direction={"row"}>
                     <Box width={"15%"} mr={1}>
-                    <Typography variant="body1">Short Description contains: </Typography>
+                      <Typography variant="body1">Text contains: </Typography>
                     </Box>
-                    <TextField variant="standard" value={filters.shortDesc} onChange={(e) => setFilters({...filters, shortDesc: e.target.value})} fullWidth />
-                  </Stack>
-                  <Stack direction={"row"}>
-                    <Box width={"15%"} mr={1}>
-                      <Typography variant="body1">Details contains: </Typography>
-                    </Box>
-                    <TextField variant="standard" value={filters.details} onChange={(e) => setFilters({...filters, details: e.target.value})} fullWidth />
+                    <TextField variant="standard" value={filters.text} onChange={(e) => { setFilters({ ...filters, text: e.target.value }); }} fullWidth />
                   </Stack>
                 </Stack>
               </Stack>
             </FormGroup>
-            <FormGroup>
+            {/* <FormGroup>
               <ToggleButtonGroup value={filters.status} onChange={handleRejectsSwitchChange} exclusive={true} size="small" aria-label="Small sizes" orientation={"horizontal"}>
                 <ToggleButton value="only-pending" key="only-pending">
                   Only Pending
@@ -163,7 +190,7 @@ export function SearchFilterOptions() {
                   Only Rejected
                 </ToggleButton>
               </ToggleButtonGroup>
-            </FormGroup>
+            </FormGroup> */}
           </Stack>
         </Collapse>
       </Card>
