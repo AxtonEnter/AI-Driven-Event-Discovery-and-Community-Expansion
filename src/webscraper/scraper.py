@@ -92,9 +92,6 @@ class WebScraper:
         visited.add(url)
         self.visitedCount += 1
 
-        # Sleep before each connection
-        await asyncio.sleep(self.sleepTime)
-        
         # Connect to page and return html using Selenium (runs js)
         soup = await self.getSoup(url)
         
