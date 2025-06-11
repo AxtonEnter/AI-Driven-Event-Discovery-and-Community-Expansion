@@ -1,0 +1,10 @@
+{
+  "lower_case": true,
+  "tokenize_with_offsets": false,
+  "sequence_length": 128,
+  "start_token_id": 101,
+  "end_token_id": 102,
+  "padding_token_id": 0,
+  "pad_to_max": true,
+  "add_special_tokens": true
+}

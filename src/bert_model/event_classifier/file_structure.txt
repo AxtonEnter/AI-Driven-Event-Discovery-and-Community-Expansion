@@ -1,9 +1,4 @@
 root directory/
-|----saved_bert_model/
-|     |----assets/
-|     |----variables/
-|     |     |----variables.data-0000-of-00001
-|     |     |----variables.index
-|     |----keras_metadata.pb
-|     |----save_model.pb
+|----saved_bert_model_weights.data-00000-of-00001
+|----saved_bert_model_weights.index
 |----predict_events.py
