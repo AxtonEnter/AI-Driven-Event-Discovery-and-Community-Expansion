@@ -52,7 +52,11 @@ loss, accuracy = bert_classifier.evaluate(val_ds)
 print(f"\nValidation Accuracy: {accuracy:.2f}")
 
 # Step 8: Save model
-bert_classifier.save("saved_bert_model")  # This saves the entire model
+bert_classifier.save_weights("saved_bert_model_weights")  # This saves the model weights
+
+# Step 9: Save full preset config + assets for offline EC2 usage
+bert_classifier.save("local_bert_classifier")          # architecture + config
+
 
 """
 # Comment out the line above, and uncomment the lines below
