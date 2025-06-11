@@ -6,7 +6,14 @@ import tensorflow as tf
 import keras_nlp
 import psycopg2
 import numpy as np
+import boto3
 
+
+# Replace with queue URL
+QUEUE_URL = ""
+
+# Initialize SQS client
+sqs = boto3.client("sqs", region_name="us-east-1")
 
 # Setup database connection constants
 DB_HOST = "test-database-jdb.c8v60oyuezl3.us-east-1.rds.amazonaws.com"
@@ -61,6 +68,27 @@ def insert_prediction(url, title, html, text_block, status, user, org_id):
 
     except Exception as e:
         print("Failed to insert into database:", e)
+        
+def receive_sqs_message():
+    try:
+        response = sqs.receive_message(
+            QueueUrl=QUEUE_URL,
+            MaxNumberOfMessages=1,
+            WaitTimeSeconds=5  # enables long-polling
+        )
+        messages = response.get("Messages", [])
+        if messages:
+            msg = messages[0]
+            print("\nReceived SQS message:")
+            print("Message ID:", msg["MessageId"])
+            print("Body:", msg["Body"])
+            return msg
+        else:
+            print("No new SQS messages.\n")
+    except Exception as e:
+        print("Failed to receive message from SQS:", e)
+    return None
+
 
 # Use built-in preset name (must be cached once before EC2 goes offline)
 preprocessor = BertPreprocessor.from_preset("bert_tiny_en_uncased")
