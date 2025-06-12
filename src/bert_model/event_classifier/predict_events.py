@@ -7,6 +7,7 @@ import keras_nlp
 import psycopg2
 import numpy as np
 import boto3
+from datetime import datetime
 
 
 # Replace with queue URL
@@ -22,11 +23,8 @@ DB_USER = "username123"
 DB_PASSWORD = "password123"
 DB_PORT = 5432
 
-
-from datetime import datetime
-
-def insert_prediction(url, title, html, text_block, status, user, org_id):
-    """Insert a classified text block into the RDS PostgreSQL table."""
+def insert_prediction(url, title, html, text_block, status, org_id):
+    """Insert a classified text block into the RDS PostgreSQL 'events' table."""
     try:
         conn = psycopg2.connect(
             host=DB_HOST,
@@ -37,34 +35,38 @@ def insert_prediction(url, title, html, text_block, status, user, org_id):
         )
         cur = conn.cursor()
 
-        insert_prediction(
-            url="https://example.com",
-            title="Example Title",
-            html="<html>...</html>",
-            text_block=block,
-            status=status,
-            user="system_classifier",
-            org_id=1
-        )
+        insert_query = """
+            INSERT INTO events (
+                url,
+                title,
+                html,
+                text,
+                addedat,
+                statuschangedat,
+                status,
+                rejectedreason,
+                organization
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+        """
 
-        now = datetime()
-        cur.execute(insert_prediction, (
+        now = datetime.now()
+        cur.execute(insert_query, (
             url,
             title,
             html,
             text_block,
             now,          # addedat
             now,          # statuschangedat
-            status,       # 1 = event, 0 = non-event, for example
+            status,       # 1 = event, 0 = non-event
             None,         # rejectedreason
-            user,
             org_id
         ))
 
         conn.commit()
         cur.close()
         conn.close()
-        print("Block inserted into database.")
+        print("Block inserted into 'events' table.")
 
     except Exception as e:
         print("Failed to insert into database:", e)
@@ -108,6 +110,16 @@ def split_into_blocks(text):
     return blocks
 
 while True:
+    insert_prediction(
+        url="https://www.kidsoutandabout.com/",
+        title="kidsandabout",
+        html="<div><h1>Test Header</h1><p>Test paragraph</p>",
+        text_block="test block",
+        status=0,
+        org_id=17
+    )
+
+    
     user_input = input("Paste your text block:\n")
 
     if user_input.strip().lower() == "quit":
