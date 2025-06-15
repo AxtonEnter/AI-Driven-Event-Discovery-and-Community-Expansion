@@ -1,6 +1,5 @@
 from scraperManager import scraperManager
 import asyncio
-from proxy import OxylabsProxy
 
 URLs = [
     "https://shortsvillereindeer.com/",
@@ -11,22 +10,29 @@ URLs = [
     "https://www.pumcny.org/",
     "https://www.stjohnsliving.org/"]
 
-URLs = ["https://www.punsonline.com/"]
-
 async def testScraperManager():
-    manager = scraperManager(concurrentScrapers=10, urls=URLs, proxyEnable=True)
+    manager = scraperManager(concurrentScrapers=7, urls=URLs, proxyEnable=True)
+    await manager.concurrentCrawl()
+
+async def testScraperManagerNoProxy():
+    manager = scraperManager(concurrentScrapers=7, urls=URLs, proxyEnable=False)
     await manager.concurrentCrawl()
 
 async def testScraperManagerSingle():
     urls = ["https://www.punsonline.com/"]
-    manager = scraperManager(concurrentScrapers=5, urls=urls, proxyEnable=True)
+    manager = scraperManager(concurrentScrapers=1, urls=urls, proxyEnable=True)
     await manager.concurrentCrawl()
 
-
+async def testScraperManagerSetup():
+    urls = [""]
+    manager = scraperManager(concurrentScrapers=1, urls=urls, proxyEnable=True)
+    await manager.concurrentCrawl()
 
 async def main():
-    await testScraperManager()
-    # await testScraperManagerSingle()
+    # await testScraperManager()
+    # await testScraperManagerNoProxy()
+    await testScraperManagerSingle()
+    # await testScraperManagerSetup()
 
 
 if __name__ == "__main__":

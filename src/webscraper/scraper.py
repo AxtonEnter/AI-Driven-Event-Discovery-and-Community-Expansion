@@ -4,6 +4,17 @@ import zlib
 import asyncio
 import utils
 import logging
+import boto3
+import psycopg2
+import json
+
+QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/main-queue"
+
+DB_HOST = "test-database-jdb.c8v60oyuezl3.us-east-1.rds.amazonaws.com"
+DB_NAME = "postgres"
+DB_USER = "username123"
+DB_PASSWORD = "password123"
+DB_PORT = 5432
 
 
 class WebScraper:
@@ -16,6 +27,23 @@ class WebScraper:
         self.rootUrl = rootUrl
         self.emails = []
         self.logger = logger
+
+        # SNS Link
+        self.sqs = boto3.client('sqs', region_name='us-east-1')
+        # for queue in self.sqs.queues.all():
+        #     print(queue.url)
+
+        # Database Link
+        self.conn = psycopg2.connect(
+            host=DB_HOST,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            port=DB_PORT
+        )
+        self.cur = self.conn.cursor()
+        self.cur.execute("SELECT version();")
+        self.logger.info(f"DB Connection: {self.cur.fetchone()}")
 
         self.logger.info(f"Initialized Scraper")
     
@@ -102,27 +130,50 @@ class WebScraper:
         text = await self.soupToText(soup)
 
         # Check for emails
-        words = text.split(" ")
-        for word in words:
-            if "@" in word:
-                if word not in self.emails:
-                    self.emails.append(word)
+        # words = text.split(" ")
+        # for word in words:
+        #     if "@" in word:
+        #         if word not in self.emails:
+        #             self.emails.append(word)
 
-        """
-        This block will be incomplete until database and message system implemented
-        """
+        newPage = False
+
         # Check page hash
         textHash = utils.hashText(text)
-        if textHash == utils.getHash(url):
-            # Page has not changed (dont send to event queue)
-            pass
+        sql = "SELECT * FROM url_hashes WHERE url=%s"
+        self.cur.execute(sql, (url,))
+        response = self.cur.fetchone()
+
+        if response == None or response == []: # New Page (No Hash)
+            newPage = True
+            sql = "INSERT INTO url_hashes VALUES (%s, %s);"
+            self.cur.execute(sql, (url, textHash,))
+            self.conn.commit()
         else:
-            # Page has changed (send to event queue)
-            compressed = zlib.compress(text.encode('utf-8'), level=-1)
-            pass
-        """
-        Done
-        """
+            if response[1] != textHash: # Page has changed
+                newPage = True
+                sql = "UPDATE url_hashes SET textHash = %s WHERE url = %s;"
+                self.cur.execute(sql, (textHash, url,))
+                self.conn.commit()
+
+                # Page has changed (send to event queue)
+                compressed = zlib.compress(text.encode('utf-8'), level=-1)
+                pass
+            else: # Page has not changed
+                pass
+        
+        if newPage:
+            # Send SNS Message
+            orgId = ""
+            messageInfo = [orgId, url, text]
+            message = json.dumps(messageInfo)
+
+            response = self.sqs.send_message(
+                QueueUrl=QUEUE_URL,
+                MessageBody=message
+            )
+            self.logger.info(f"Message Sent: {response['MessageId']}")
+
 
         # For each link, convert partial urls to full and check if its on root site
         # If so: create a recursive call to crawl the url

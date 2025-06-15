@@ -8,11 +8,6 @@ def hashText(text):
     """Return a string's SHA-256 hash."""
     return hashlib.sha256(text.encode()).hexdigest()
 
-def getHash(url):
-    """Returns the hash of the text for a given url stored in the database, returns False if url not previously hashed"""
-    # Stored in database
-    return False
-
 def stringDateCheck(str):
     """
     Find all dates in a string
@@ -44,6 +39,5 @@ def isPastDate(dateString):
     
     except ValueError:
         return None  # Invalid date (e.g., February 30)
-
 
 
