@@ -9,11 +9,13 @@ process.loadEnvFile(__dirname + "/.env");
 // Update with your config settings.
 
 export const config: { [key: string]: Knex.Config } = {
-    development: {
+  development: {
     client: "pg",
     connection: {
       connectionString: process.env.DATABASE_URL,
-      ssl: false,
+      ssl: {
+        rejectUnauthorized: false
+      }
     },
     pool: {
       min: 2,
