@@ -36,7 +36,7 @@ function TabPanel(props: TabPanelProps) {
 function Events() {
   const [getEvents, getEventsResult] = useLazyQuery(GET_EVENTS);
 
-  const [importOrgCsv] = useMutation(IMPORT_ORGANIZATION_CSV);
+  const [importOrgCsv, importOrgCsvResult] = useMutation(IMPORT_ORGANIZATION_CSV);
 
   //getEvents();
 
@@ -45,7 +45,8 @@ function Events() {
   return (
     <Page>
       <Box>
-        <CsvUpload handleUpload={async function (file: File): Promise<void> {
+        <CsvUpload result={importOrgCsvResult} handleUpload={async function (file: File): Promise<void> {
+          console.log("begin upload");
           importOrgCsv({variables: {csv: await file.text()}});
         }} />
         <SearchFilterOptions query={getEvents} />

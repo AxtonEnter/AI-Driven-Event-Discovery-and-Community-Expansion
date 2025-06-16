@@ -75,10 +75,14 @@ async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], 
           partials.push({ name: org.accountName, org_url: org.website, region: `${org.billingCity}, ${org.billingStateProvince}` });
         } else {
           //Add the region to the table and add the org to the array
-          await insertRegion(`${org.billingCity}, ${org.billingStateProvince}`).then(() => {
-            partials.push({ name: org.accountName, org_url: org.website, region: `${org.billingCity}, ${org.billingStateProvince}` })
-            newRegions.push(`${org.billingCity}, ${org.billingStateProvince}`);
-          });
+          try {
+              await insertRegion(`${org.billingCity}, ${org.billingStateProvince}`).then(() => {
+              partials.push({ name: org.accountName, org_url: org.website, region: `${org.billingCity}, ${org.billingStateProvince}` })
+              newRegions.push(`${org.billingCity}, ${org.billingStateProvince}`);
+            });
+          } catch (e: any) {
+            console.warn(e)
+          }
         }
       } else {
         //Add the org without a region

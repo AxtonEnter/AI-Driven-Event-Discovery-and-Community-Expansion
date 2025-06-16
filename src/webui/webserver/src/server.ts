@@ -58,7 +58,7 @@ async function startServer() {
   app.use(morgan("combined"));
 
   //JSON request body parsing
-  app.use(bodyParser.json());
+  app.use(bodyParser.json({ limit: "50mb" }));
 
   //Prepare client session handler
   setupSessions(app);

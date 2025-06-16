@@ -1,8 +1,10 @@
+import { MutationResult } from "@apollo/client";
 import { Button, Stack } from "@mui/material"
 import { useRef, useState } from "react"
 
 type CsvUploadProps = {
-    handleUpload: (file: File) => void
+    handleUpload: (file: File) => void;
+    result: MutationResult<any>;
 }
 
 export function CsvUpload(props: CsvUploadProps) {
@@ -27,7 +29,7 @@ export function CsvUpload(props: CsvUploadProps) {
     return (
         <Stack direction={"row"} justifyContent={"center"} pb={2} pt={4}>
             <input type='file' id='file' ref={inputFile} style={{ display: 'none' }} accept=".csv" onChange={handleFileChange} />
-            <Button color='info' variant='outlined' onClick={openFileDialog}>Upload CSV</Button>
+            <Button color='info' variant='outlined' onClick={openFileDialog} loading={props.result.loading}>Upload CSV</Button>
         </Stack>
     )
 }

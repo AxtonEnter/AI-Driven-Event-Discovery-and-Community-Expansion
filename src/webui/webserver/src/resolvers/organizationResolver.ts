@@ -28,6 +28,7 @@ export const OrganizationResolver = {
     importOrganizations: async (
       _parent: any,
       args: {csv: string, mode?: string}) => {
+        console.log("begin parse")
         return await insertCsvOrganizations(parseCSVForOrganizations(args.csv));
       }  
   }

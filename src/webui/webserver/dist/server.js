@@ -27,7 +27,7 @@ async function startServer() {
     app.use(cors());
     app.use(compression());
     app.use(morgan("combined"));
-    app.use(bodyParser.json());
+    app.use(bodyParser.json({ limit: "50mb" }));
     setupSessions(app);
     if (process.env.NODE_ENV === "development") {
         app.set('views', path.join(__dirname, 'views'));
