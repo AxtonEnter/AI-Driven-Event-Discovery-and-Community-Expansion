@@ -9,9 +9,14 @@ export const OrganizationSchema = gql`
     org_url: String!
     org_events_url: String
     region: Region
-    }
+  }
 
   type Query {
     organization(id: ID!): Organization
+    organizations: [Organization]
   }
-`
+
+  type Mutation {
+    importOrganizations(csv: String!, mode: String): [Organization]
+  }
+`;

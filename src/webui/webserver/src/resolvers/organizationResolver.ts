@@ -1,5 +1,5 @@
 import { OrganizationsRow } from "../db/tables.js";
-import { getOrganizationByID } from "../repositories/organizationRepo.js";
+import { getOrganizationByID, getOrganizations, insertCsvOrganizations, parseCSVForOrganizations } from "../repositories/organizationRepo.js";
 import { getRegionByName } from "../repositories/regionRepo.js";
 
 export const OrganizationResolver = {
@@ -16,6 +16,19 @@ export const OrganizationResolver = {
       _parent: any,
       args: {id: number}) => {
         return await getOrganizationByID(args.id);
+      },
+    organizations: async (
+      _parent: any,
+      _args: any) => {
+        return await getOrganizations();
+      },
+  },
+
+  Mutation: {
+    importOrganizations: async (
+      _parent: any,
+      args: {csv: string, mode?: string}) => {
+        return await insertCsvOrganizations(parseCSVForOrganizations(args.csv));
       }  
   }
 }
