@@ -4,11 +4,12 @@ import { Box, Tab, Table, TableBody, TableCell, TableContainer, TableHead, Tabs 
 import { EventItem } from './types/Event.js';
 import { EventRow } from './common/event/EventRow.js';
 import { SearchFilterOptions } from './common/search/SearchFilterOptions.js';
-import { useLazyQuery } from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import { GET_EVENTS } from './queries/eventQueries.js';
 import RequestWrapper from './common/RequestWrapper.js';
 import { CsvUpload } from './common/csv/CsvUpload.js';
 import { useState } from 'react';
+import { IMPORT_ORGANIZATION_CSV } from './queries/organizationQueries.js';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -35,6 +36,8 @@ function TabPanel(props: TabPanelProps) {
 function Events() {
   const [getEvents, getEventsResult] = useLazyQuery(GET_EVENTS);
 
+  const [importOrgCsv] = useMutation(IMPORT_ORGANIZATION_CSV);
+
   //getEvents();
 
   const [eventsPanel, setEventsPanel] = useState<number>(0);
@@ -42,9 +45,8 @@ function Events() {
   return (
     <Page>
       <Box>
-        <CsvUpload handleUpload={function (file: File): void {
-          console.log(file)
-          throw new Error('Function not implemented.');
+        <CsvUpload handleUpload={async function (file: File): Promise<void> {
+          importOrgCsv({variables: {csv: await file.text()}});
         }} />
         <SearchFilterOptions query={getEvents} />
       </Box>
