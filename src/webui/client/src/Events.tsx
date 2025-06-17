@@ -41,6 +41,13 @@ function Events() {
   //getEvents();
 
   const [eventsPanel, setEventsPanel] = useState<number>(0);
+  const [selectedEvents, setSelectedEvents] = useState<EventItem[]>([]);
+
+  function handleSelect(event: EventItem) {
+    setSelectedEvents((prev: EventItem[]) =>
+      prev.includes(event) ? prev.filter((e) => e !== event) : [...prev, event]
+    );
+  }
 
   return (
     <Page>
@@ -49,7 +56,7 @@ function Events() {
           console.log("begin upload");
           importOrgCsv({variables: {csv: await file.text()}});
         }} />
-        <SearchFilterOptions query={getEvents} />
+        <SearchFilterOptions selectedEvents={selectedEvents} query={getEvents} />
       </Box>
       <Box>
         <RequestWrapper loading={getEventsResult.loading} error={getEventsResult.error}>
@@ -74,7 +81,7 @@ function Events() {
 
                 <TableBody>
                   {getEventsResult.data?.events.pending.map((eventItem: EventItem) => (
-                    <EventRow event={eventItem} handleSelect={() => { }} />
+                    <EventRow event={eventItem} handleSelect={handleSelect} />
                   ))}
                 </TableBody>
               </Table>
@@ -89,7 +96,7 @@ function Events() {
                 </TableHead>
                 <TableBody>
                   {getEventsResult.data?.events.accepted.map((eventItem: EventItem) => (
-                    <EventRow event={eventItem} handleSelect={() => { }} />
+                    <EventRow event={eventItem} handleSelect={handleSelect} />
                   ))}
                 </TableBody>
               </Table>
@@ -104,7 +111,7 @@ function Events() {
                 </TableHead>
                 <TableBody>
                   {getEventsResult.data?.events.rejected.map((eventItem: EventItem) => (
-                    <EventRow event={eventItem} handleSelect={() => { }} />
+                    <EventRow event={eventItem} handleSelect={handleSelect} />
                   ))}
                 </TableBody>
               </Table>

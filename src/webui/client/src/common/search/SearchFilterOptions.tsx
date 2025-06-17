@@ -6,6 +6,8 @@ import { useLocation, useNavigate } from "react-router";
 import CloseIcon from "@mui/icons-material/Close";
 import { endOfDay, parse, startOfDay } from "date-fns";
 import { LazyQueryExecFunction, OperationVariables } from "@apollo/client";
+import { BulkAction } from "../bulk/BulkAction";
+import { EventItem } from "../../types/Event";
 
 interface EventSearchFilters {
   url?: string;
@@ -13,7 +15,12 @@ interface EventSearchFilters {
   organization?: string;
   text?: string;
 
-  // status: "only-pending" | "only-rejected" | "both"
+  //status: "only-pending" | "only-rejected" | "both"
+}
+
+interface Props {
+  selectedEvents: EventItem[];
+  query: LazyQueryExecFunction<any, OperationVariables>;
 }
 
 function parseDateForQuery(
@@ -24,15 +31,14 @@ function parseDateForQuery(
   return dayShifter(parse(dateString, "yyyy-MM-dd", new Date()));
 }
 
-interface SearchFilterOptionsProps {
-  query: LazyQueryExecFunction<any, OperationVariables>;
-}
+// interface SearchFilterOptionsProps extends Props {
+//   query: LazyQueryExecFunction<any, OperationVariables>;
+// }
 
 
-export function SearchFilterOptions(props: SearchFilterOptionsProps) {
+export function SearchFilterOptions(props: Props) {
   const navigate = useNavigate();
   const { search } = useLocation();
-
 
   const [startDateString, setStartDateString] = useState<string>();
   const [stopDateString, setStopDateString] = useState<string>();
@@ -145,6 +151,7 @@ export function SearchFilterOptions(props: SearchFilterOptionsProps) {
           </IconButton>
         )}
         <Button onClick={handleSubmit} variant="contained" color="primary">Search</Button>
+        <BulkAction events={props.selectedEvents} />
       </Stack>
       <Card sx={{ p: "1em", background: 'none', border: 'none' }}>
         <Stack direction={"row"} onClick={() => setExpanded(!expanded)}>

@@ -13,7 +13,7 @@ import { Tag } from "../../types/Tag";
 
 interface Props {
   event: EventItem,
-  handleSelect: () => void,
+  handleSelect: (event: EventItem) => void,
 }
 
 export function EventRow(props: Props) {
@@ -61,7 +61,7 @@ export function EventRow(props: Props) {
   return (
     <TableRow>
       <TableCell style={{ verticalAlign: 'top' }}>
-        <Checkbox value={selected} onChange={() => { setSelected(!selected); props.handleSelect }} />
+        <Checkbox value={selected} onChange={() => {setSelected(!selected); props.handleSelect(props.event); }} />
       </TableCell>
       <TableCell style={{ verticalAlign: 'top' }}>
         <Stack direction={"column"} justifyContent={"center"}>
