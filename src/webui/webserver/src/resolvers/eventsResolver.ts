@@ -1,5 +1,5 @@
 import { EventsRow } from "../db/tables.js";
-import { acceptEvent, EventFilter, getEvents, pendEvent, rejectEvent } from "../repositories/eventsRepo.js"
+import { acceptEvent, acceptEvents, EventFilter, getEvents, pendEvent, pendEvents, rejectEvent, rejectEvents } from "../repositories/eventsRepo.js"
 import { getOrganizationByID } from "../repositories/organizationRepo.js";
 import { getTagsByEvent } from "../repositories/TagRepo.js";
 import { getUserByUsername } from "../repositories/userRepo.js";
@@ -50,6 +50,21 @@ export const EventsResolver = {
       _parent: any,
       args: {id: number}) => {
         return pendEvent(args.id);
+    },
+    rejectEvents: async (
+      _parent: any,
+      args: {ids: number[], username: string, reason: string}) => {
+        return rejectEvents(args.ids, args.username, args.reason);
+    },
+    acceptEvents: async (
+      _parent: any,
+      args: {ids: number[], username: string}) => {
+        return acceptEvents(args.ids, args.username);
+    },
+    pendEvents: async (
+      _parent: any,
+      args: {ids: number[],}) => {
+        return pendEvents(args.ids);
     },
   }
 }
