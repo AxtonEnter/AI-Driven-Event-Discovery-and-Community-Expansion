@@ -28,11 +28,19 @@ async def testScraperManagerSetup():
     manager = scraperManager(concurrentScrapers=1, urls=urls, proxyEnable=True)
     await manager.concurrentCrawl()
 
+async def multiEventPageTest():
+    urls = ["https://recordarchive.com/events-calendar/"]
+    # urls = ["https://www.villageofclinton.org/explore/activities___entertainment.php"]
+    urls = ["https://shortsvillereindeer.com/events"]
+    manager = scraperManager(concurrentScrapers=1, urls=urls, proxyEnable=True)
+    await manager.concurrentCrawlMulti()
+
 async def main():
     # await testScraperManager()
     # await testScraperManagerNoProxy()
-    await testScraperManagerSingle()
+    # await testScraperManagerSingle()
     # await testScraperManagerSetup()
+    await multiEventPageTest()
 
 
 if __name__ == "__main__":

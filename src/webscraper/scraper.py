@@ -7,6 +7,8 @@ import logging
 import boto3
 import psycopg2
 import json
+from collections import Counter
+import hashlib
 
 QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/main-queue"
 
@@ -18,13 +20,14 @@ DB_PORT = 5432
 
 
 class WebScraper:
-    def __init__(self, driver, rootUrl, logger: logging.Logger, maxPages=100, sleepTime=1):
+    def __init__(self, driver, rootUrl, logger: logging.Logger, maxPages=100, sleepTime=1, isMultiEvent=False):
         self.driver = driver
         self.maxPages = maxPages
         self.sleepTime = sleepTime
         self.visited = set()
         self.visitedCount = 0
         self.rootUrl = rootUrl
+        self.isMultiEvent = isMultiEvent
         self.emails = []
         self.logger = logger
 
@@ -129,6 +132,9 @@ class WebScraper:
         # Get the visible text
         text = await self.soupToText(soup)
 
+        # images = soup.find_all('img')
+        # print(images)
+
         # Check for emails
         # words = text.split(" ")
         # for word in words:
@@ -145,12 +151,14 @@ class WebScraper:
         response = self.cur.fetchone()
 
         if response == None or response == []: # New Page (No Hash)
+            self.logger.info("New Page - No Hash Stored: Sending to Model")
             newPage = True
             sql = "INSERT INTO url_hashes VALUES (%s, %s);"
             self.cur.execute(sql, (url, textHash,))
             self.conn.commit()
         else:
             if response[1] != textHash: # Page has changed
+                self.logger.info("Page has changed - Updating Hash: Sending to Model")
                 newPage = True
                 sql = "UPDATE url_hashes SET textHash = %s WHERE url = %s;"
                 self.cur.execute(sql, (textHash, url,))
@@ -160,14 +168,15 @@ class WebScraper:
                 compressed = zlib.compress(text.encode('utf-8'), level=-1)
                 pass
             else: # Page has not changed
+                self.logger.info("Page has not changed")
                 pass
         
         if newPage:
             # Send SNS Message
-            orgId = ""
+            orgId = 52
             messageInfo = [orgId, url, text]
             message = json.dumps(messageInfo)
-
+            self.logger.info(f"Message: [OrgId:{orgId}, URL:{url}, Text:{text[:50]}...]")
             response = self.sqs.send_message(
                 QueueUrl=QUEUE_URL,
                 MessageBody=message
@@ -221,29 +230,87 @@ class WebScraper:
         full_text = await self.soupToText(soup)
         return event_blocks, full_text
     
-    async def crawlMultiEventPage(self, url):
-        """
-        Crawls a known multi event page for several events.
-        """
-        # Debug
-        print(url)
+
+    async def crawlMultiEventPage(self):
+        url = self.rootUrl
 
         soup = await self.getSoup(url)
         if soup is None:
             return []
-        
-        # Get the visible text
-        text = await self.soupToText(soup)
 
-        # Check page hash
-        textHash = utils.hashText(text)
-        if textHash == utils.getHash(url):
-            return []
-        else:
-            # Update Page Hash in DB
-            pass
-        
-        
+        main = soup.body or soup
+
+        excluded_tags = {'header', 'footer'}
+        excluded_ids = {'header', 'footer'}
+        excluded_classes = {'header', 'footer'}
+
+        def is_excluded(block):
+            if block.name in excluded_tags:
+                return True
+            if block.get('id') and block.get('id').lower() in excluded_ids:
+                return True
+            classes = block.get('class') or []
+            if any(c.lower() in excluded_classes for c in classes):
+                return True
+            return False
+
+        candidates = main.find_all(['div', 'li', 'article', 'section', 'p'], recursive=True)
+        candidates = [block for block in candidates if not is_excluded(block)]
+
+        # Step 1: Keep only the deepest (leaf) blocks
+        leafBlocks = []
+        for i, block in enumerate(candidates):
+            if not any(other is not block and block in other.parents for other in candidates):
+                leafBlocks.append(block)
+
+        # Step 2: Filtering and deduplication
+        seenHashes = set()
+        filteredBlocks = []
+
+        for block in leafBlocks:
+            text = await self.soupToText(block)
+            if len(text.strip()) < 30:
+                continue
+            h = hashlib.sha1(text.strip().lower().encode()).hexdigest()
+            if h in seenHashes:
+                continue
+            seenHashes.add(h)
+
+            # Find Images
+            images = list(block.find_all('img'))
+            if block.parent:
+                for sibling in block.parent.find_all(recursive=False):
+                    if sibling is not block:
+                        images.extend(sibling.find_all('img'))
+
+            if block.parent:
+                images.extend(block.parent.find_all('img', recursive=False))
+
+            imageUrls = []
+            seen = set()
+            for img in images:
+                src = img.get('src')
+                if src:
+                    full_url = urljoin(url, src)
+                    if full_url not in seen:
+                        seen.add(full_url)
+                        imageUrls.append(full_url)
+
+            filteredBlocks.append((block, text, imageUrls))
+
+        # Step 3: Scoring and logging
+        for block, text, imageUrls in filteredBlocks:
+            score = utils.score_event_block(text)
+            self.logger.info(f"[TAG: {block.name}, Score:{score}] {text[:100]}")
+            self.logger.info(f"Images: {imageUrls}")
+
+        # # Check page hash
+        # textHash = utils.hashText(text)
+        # if textHash == utils.getHash(url):
+        #     return []
+        # else:
+        #     # Update Page Hash in DB
+        #     pass
 
     async def close(self):
         """Close the browser when done."""
