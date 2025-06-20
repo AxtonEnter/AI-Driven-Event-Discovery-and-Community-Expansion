@@ -46,10 +46,22 @@ export async function rejectEvent(id: number, username: string, reason: string):
   await knex("events").update({user: username, rejectedreason: reason, status: 2}).where({id});
 }
 
+export async function rejectEvents(ids: number[], username: string, reason: string): Promise<void> {
+  await knex("events").update({user: username, rejectedreason: reason, status: 2}).whereIn('id', ids);
+}
+
 export async function acceptEvent(id: number, username: string): Promise<void> {
   await knex("events").update({user: username, status: 1}).where({id});
 }
 
+export async function acceptEvents(ids: number[], username: string): Promise<void> {
+  await knex("events").update({user: username, status: 1}).whereIn('id', ids);
+}
+
 export async function pendEvent(id: number): Promise<void> {
   await knex("events").update({user: null, status: 0}).where({id});
+}
+
+export async function pendEvents(ids: number[]): Promise<void> {
+  await knex("events").update({user: null, status: 0}).whereIn('id', ids);
 }
