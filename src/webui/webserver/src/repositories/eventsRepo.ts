@@ -11,6 +11,7 @@ export interface EventFilter {
 
 export async function getEvents(searchText?: string, filters?: EventFilter): Promise<EventsRow[]> {
   return await knex("events")
+  .select(`events.*`)
     .leftJoin(knex.raw(`"organizations" ON "organizations".id = "organization"`))
     .where((query) => {
       if (searchText) {
