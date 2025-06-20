@@ -7,7 +7,7 @@ interface Props {
     events: EventItem[];
     isOpen: boolean;
     handleClose: () => void;
-    handleSubmit: (events: EventItem[]) => void;
+    handleSubmit: (events: EventItem[], reason: string) => void;
 }
 
 export function BulkDenialModal(props: Props) {
@@ -21,7 +21,7 @@ export function BulkDenialModal(props: Props) {
             </Stack>
             <Stack direction={"row"} justifyContent={"flex-end"} mt={3}>
                 <Button onClick={props.handleClose} color="error" variant="contained" sx={{mx: 1}}>Cancel</Button>
-                <Button onClick={() => props.handleSubmit(props.events)} color="success" variant="contained" sx={{mx: 1}}>Submit</Button>
+                <Button onClick={() => denialReason && props.handleSubmit(props.events, denialReason)} color="success" variant="contained" sx={{mx: 1}}>Submit</Button>
             </Stack>
         </PrettyModal>
     )

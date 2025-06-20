@@ -115,3 +115,21 @@ export const PEND_EVENT = gql`
     pendEvent(id: $id)
   }
 `;
+
+export const REJECT_EVENTS = gql`
+  mutation RejectEvents($ids: [ID], $reason: String!) {
+    rejectEvents(ids: $ids, reason: $reason)
+  }
+`;
+
+export const ACCEPT_EVENTS = gql`
+  mutation AcceptEvents($ids: [ID]) {
+    acceptEvents(ids: $ids)
+  }
+`;
+
+export const PEND_EVENTS = gql`
+  mutation PendEvents($ids: [ID]) {
+    pendEvents(ids: $ids)
+  }
+`;
