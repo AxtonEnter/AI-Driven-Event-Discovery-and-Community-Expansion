@@ -11,6 +11,16 @@ export async function getOrganizations(): Promise<OrganizationsRow[]> {
   return await knex("organizations").select();
 }
 
+export interface MinimalOrganizationsRow {
+  id: string;
+  name?: string;
+  org_url: string;
+}
+
+export async function getOrganizationsIDsNamesUrls(): Promise<MinimalOrganizationsRow[]> {
+  return await knex("organizations").select("id", "name", "url");
+}
+
 export async function purgeOrganizations(): Promise<void> {
   await knex("organizations").delete();
 }

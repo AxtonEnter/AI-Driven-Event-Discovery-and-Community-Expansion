@@ -1,8 +1,24 @@
 import { EventsRow } from "../db/tables.js";
 import { acceptEvent, EventFilter, getEvents, pendEvent, rejectEvent } from "../repositories/eventsRepo.js"
-import { getOrganizationByID } from "../repositories/organizationRepo.js";
+import { getOrganizationByID, getOrganizationsIDsNamesUrls, MinimalOrganizationsRow } from "../repositories/organizationRepo.js";
 import { getTagsByEvent } from "../repositories/TagRepo.js";
 import { getUserByUsername } from "../repositories/userRepo.js";
+
+async function informWebScraper(orgs: MinimalOrganizationsRow[]) {
+  var options = {
+    body: JSON.stringify({orgs: orgs}),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    method: "POST"
+  }
+  
+  await fetch((process.env.WEBSCRAPER_INFORM_API_URL ?? ""), options).then(async function (res) {
+    //Currently the compiler will not allow us to parse res.json() since it is typed as 'unknown'
+    //To fix this, we will simply lie to the compiler and say it is 'any'
+    console.log(res.json());
+    return await res.json() as any;
+  })
+}
+
 
 export const EventsResolver = {
   Event: {
@@ -50,6 +66,13 @@ export const EventsResolver = {
       _parent: any,
       args: {id: number}) => {
         return pendEvent(args.id);
+    },
+    beginScrape: async (
+      _parent: any,
+      _args: any) => {
+      return await getOrganizationsIDsNamesUrls().then(async (result) => {
+        return await informWebScraper(result)
+      })
     },
   }
 }

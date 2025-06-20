@@ -36,5 +36,6 @@ export const EventsSchema = gql`
     rejectEvent(id: ID!, reason: String!): Boolean
     acceptEvent(id: ID!): Boolean
     pendEvent(id: ID!): Boolean
+    beginScrape: Boolean
   }
 `
