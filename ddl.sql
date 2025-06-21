@@ -130,6 +130,7 @@ CREATE TABLE public.events (
 	rejectedreason varchar NULL,
 	"user" varchar(80) NULL,
 	organization int8 NULL,
+	images json NULL,
 	CONSTRAINT events_pk PRIMARY KEY (id),
 	CONSTRAINT events_status_check CHECK (((status >= 0) AND (status <= 2))),
 	CONSTRAINT events_organizations_fk FOREIGN KEY (organization) REFERENCES public.organizations(id),
