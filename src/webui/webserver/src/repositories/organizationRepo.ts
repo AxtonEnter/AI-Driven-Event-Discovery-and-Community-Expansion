@@ -26,44 +26,49 @@ export async function purgeOrganizations(): Promise<void> {
 }
 
 export interface CsvOrganizationRow {
-  primaryMarket: string;
-  accountName: string;
+  cmsId?: number,
+  accountName: string,
+  billingAddr1: string,
+  billingCity: string,
+  billingState: string,
   website: string;
-  billingAddressLine1: string;
-  billingCity: string;
-  billingStateProvince: string;
-  billingZipPostalCode: string;
+  koaUrl: string;
+  primaryMarket: string;
 }
 
 export function parseCSVForOrganizations(csv: string): CsvOrganizationRow[] {
   const lines = csv.split("\n").map(line => line.trim()).filter(line => line);
   const headers = [
-    "Primary Market",
+    "CMS ID",
     "Account Name",
-    "Website",
     "Billing Address Line 1",
     "Billing City",
     "Billing State/Province",
-    "Billing Zip/Postal Code"
+    "Website",
+    "KOAURL",
+    "Primary Market"
   ];
 
   return lines.slice(1).map(line => {
     const values = line.split(",");
     return {
-      primaryMarket: values[0] || "",
+      cmsId: parseInt(values[0]) || undefined,
       accountName: values[1] || "",
-      website: values[2] || "",
-      billingAddressLine1: values[3] || "",
-      billingCity: values[4] || "",
-      billingStateProvince: values[5] || "",
-      billingZipPostalCode: values[6] || ""
+      billingAddr1: values[2] || "",
+      billingCity: values[3] || "",
+      billingState: values[4] || "",
+      website: values[5] || "",
+      koaUrl: values[6] || "",
+      primaryMarket: values[7] || ""
     };
   });
 }
 
 interface PartialOrganizationsRow {
-  name?: string;
+  cms_id?: number;
+  name: string;
   org_url: string;
+  koa_url: string
   region?: string;
 }
 
@@ -75,37 +80,39 @@ async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], 
 
     csvOrgs.forEach(async (org) => {
       //If add mode and location info exists
-      if (onNewRegion === "add" && org.billingCity != "" && org.billingStateProvince != "") {
+      if (onNewRegion === "add" && org.billingCity != "" && org.billingState != "") {
         //If region exists in table
         if (
-          newRegions.includes(`${org.billingCity}, ${org.billingStateProvince}`)
-          || regions.find((item) => item.name === `${org.billingCity}, ${org.billingStateProvince}`)
+          newRegions.includes(`${org.billingCity}, ${org.billingState}`)
+          || regions.find((item) => item.name === `${org.billingCity}, ${org.billingState}`)
         ) {
           //Just add the org record with a region to the array
-          partials.push({ name: org.accountName, org_url: org.website, region: `${org.billingCity}, ${org.billingStateProvince}` });
+          partials.push({ cms_id: org.cmsId, name: org.accountName, org_url: org.website, koa_url: org.koaUrl, region: `${org.billingCity}, ${org.billingState}` });
         } else {
           //Add the region to the table and add the org to the array
           try {
-              await insertRegion(`${org.billingCity}, ${org.billingStateProvince}`).then(() => {
-              partials.push({ name: org.accountName, org_url: org.website, region: `${org.billingCity}, ${org.billingStateProvince}` })
-              newRegions.push(`${org.billingCity}, ${org.billingStateProvince}`);
+              await insertRegion(`${org.billingCity}, ${org.billingState}`).then(() => {
+              partials.push({ cms_id: org.cmsId, name: org.accountName, org_url: org.website, koa_url: org.koaUrl, region: `${org.billingCity}, ${org.billingState}` })
+              newRegions.push(`${org.billingCity}, ${org.billingState}`);
             });
           } catch (e: any) {
-            console.warn(e)
+            //console.warn(e)
           }
         }
       } else {
         //Add the org without a region
-        partials.push({ name: org.accountName, org_url: org.website });
+        partials.push({ cms_id: org.cmsId, name: org.accountName, org_url: org.website, koa_url: org.koaUrl });
       }
-    })
+    });
+    //console.log(`! ${partials}`)
   }).then(() => {
     //Wait until the above is completely done before returning
+    //console.log(`2 ${partials}`)
     return partials;
   })
 }
 
 
 export async function insertCsvOrganizations(organizations: CsvOrganizationRow[]) {
-  await knex("organizations").insert(convertCsvOrganizationsToPartials(organizations, "add"));
+  await knex("organizations").insert(await convertCsvOrganizationsToPartials(organizations, "add"));
 }
