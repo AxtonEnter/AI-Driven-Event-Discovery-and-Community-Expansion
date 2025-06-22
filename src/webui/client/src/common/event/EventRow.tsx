@@ -10,6 +10,7 @@ import { ACCEPT_EVENT, GET_EVENTS, PEND_EVENT, REJECT_EVENT } from "../../querie
 import { TEMP_USER } from "../../assets/TEMP_USER";
 import { DenialReasonModal } from "../modal/DenialReasonModal";
 import { Tag } from "../../types/Tag";
+import { ImageCarouselModal } from "../modal/ImageCarouselModal";
 
 interface Props {
   event: EventItem,
@@ -21,6 +22,7 @@ export function EventRow(props: Props) {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
   const [contentModalOpen, setContentModalOpen] = useState<boolean>(false);
+  const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [denialReasonModalOpen, setDenialReasonModalOpen] = useState<boolean>(false);
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [rejectSnackbarOpen, setRejectSnackbarOpen] = useState<boolean>(false);
@@ -85,6 +87,7 @@ export function EventRow(props: Props) {
         <Typography variant="h5">{props.event.title}</Typography>
         <Divider />
         <Button onClick={() => setContentModalOpen(true)} variant="contained">Show HTML Content</Button>
+        <Button onClick={() => setImageModalOpen(true)} variant="contained" style={{marginLeft : '20px'}}>Show Images</Button>
         <Typography variant="body2">
           {expanded
             ? <a onClick={() => setExpanded(false)}><ExpandLess /> Hide Raw HTML</a>
@@ -103,7 +106,7 @@ export function EventRow(props: Props) {
       <EditEventUrlModal currentUrl={props.event.url} isOpen={editModalOpen} handleClose={() => setEditModalOpen(false)} />
       <FullContentModal htmlContent={props.event.html} isOpen={contentModalOpen} handleClose={() => setContentModalOpen(false)} />
       <DenialReasonModal isOpen={denialReasonModalOpen} handleClose={() => setDenialReasonModalOpen(false)} handleSubmit={handleRejectSubmitClick} />
-
+      <ImageCarouselModal images={props.event.images} isOpen={imageModalOpen} handleClose={() => setImageModalOpen(false)} />
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
