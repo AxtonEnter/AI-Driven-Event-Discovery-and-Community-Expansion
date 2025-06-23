@@ -11,6 +11,12 @@ import numpy as np
 import psycopg2
 import boto3
 import json
+import time
+
+# Track overall metrics
+total_messages = 0
+correct_predictions = 0
+start_total_time = time.time()
 
 # Replace with queue URL
 QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/main-queue"
@@ -159,13 +165,6 @@ model = BertClassifier.from_preset(
 # Load trained weights
 model.load_weights("saved_bert_model_weights").expect_partial()
 
-'''
-def split_into_blocks(text):
-    """Split input text into blocks using paragraph-like breaks."""
-    blocks = [b.strip() for b in text.split('\n') if b.strip()]
-    return blocks
-'''
-
 def extract_visible_text_from_html(html):
     soup = BeautifulSoup(html, "html.parser")
     text = soup.get_text(separator=" ", strip=True)
@@ -183,14 +182,6 @@ while True:
     text_input = extract_visible_text_from_html(html_input)
     
     print("\nRunning MODEL PREDICTION on received text...\n")
-    
-    '''
-    blocks = split_into_blocks(text_input)
-
-    if not blocks:
-        print("No valid text blocks detected.\n")
-        continue
-    '''
 
     # Wrap single paragraph as a list to make it batch-friendly
     input_batch = [text_input]
