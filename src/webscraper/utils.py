@@ -8,11 +8,6 @@ def hashText(text):
     """Return a string's SHA-256 hash."""
     return hashlib.sha256(text.encode()).hexdigest()
 
-def getHash(url):
-    """Returns the hash of the text for a given url stored in the database, returns False if url not previously hashed"""
-    # Stored in database
-    return False
-
 def stringDateCheck(str):
     """
     Find all dates in a string
@@ -44,6 +39,42 @@ def isPastDate(dateString):
     
     except ValueError:
         return None  # Invalid date (e.g., February 30)
+    
+EVENT_KEYWORDS = [
+    'event', 'show', 'concert', 'talk', 'lecture', 'workshop',
+    'festival', 'performance', 'screening', 'webinar', 'meetup',
+    'opening', 'reading', 'reservation'
+]
 
+MONTH_REGEX = r'\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|' \
+              r'May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|' \
+              r'Sep(?:t)?(?:ember)?|Oct(?:ober)?|' \
+              r'Nov(?:ember)?|Dec(?:ember)?)\b'
 
+TIME_REGEX = re.compile(
+    r'\b('
+    r'([0-2]?[0-9])(:[0-5][0-9])?\s?(AM|PM|am|pm)?'       # 6, 6:00, 6 PM
+    r'(\s?[-–to]+\s?'                                     # separator like '-', 'to', '–'
+    r'([0-2]?[0-9])(:[0-5][0-9])?\s?(AM|PM|am|pm)?)?'     # 8, 8:00, 8pm
+    r')\b',
+    re.IGNORECASE
+)
 
+DOW_REGEX = r'\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)(day)?\b'
+NUMERIC_DATE_REGEX = r'\b\d{1,2}[./-]\d{1,2}([./-]\d{2,4})?\b'
+
+def score_event_block(text):
+    score = 0
+    if re.search(MONTH_REGEX, text, re.I):
+        score += 2
+    if re.search(NUMERIC_DATE_REGEX, text):
+        score += 2
+    if re.search(r'\d{4}', text):  # year-only fallback
+        score += 1
+    if TIME_REGEX.search(text, re.I):
+        score += 2
+    if any(kw in text.lower() for kw in EVENT_KEYWORDS):
+        score += 2
+    if re.search(DOW_REGEX, text, re.I):
+        score += 1
+    return score

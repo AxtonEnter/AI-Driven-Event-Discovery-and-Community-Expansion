@@ -2,6 +2,8 @@
 from playwright.async_api import async_playwright
 from proxy import OxylabsProxy
 import logging
+import time
+import asyncio
 
 class PlaywrightDriver:
     def __init__(self, logger: logging.Logger, headless: bool = True, proxy: OxylabsProxy = None):
@@ -16,6 +18,7 @@ class PlaywrightDriver:
         self.page = None
         self.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
         self.logger = logger
+        self.lastRequestTime = 0
 
         self.logger.info(f"Initialized Driver")
 
@@ -97,8 +100,15 @@ class PlaywrightDriver:
                             self.logger.warning("No Response Head")
                             return None
 
+            # Ensure its been at least 1 second since last body request.
+            currentTime = time.time()
+            timeElaspsed = currentTime - self.lastRequestTime
+            if (timeElaspsed < 1):
+                asyncio.sleep(1 - timeElaspsed)
+            self.lastRequestTime = currentTime
+
             # Navigate to the page
-            self.logger.info("Requesting Body")
+            self.logger.info(f"Requesting Body. Last Request: {timeElaspsed:.1f} Sec")
             responseBody = await self.page.goto(url, timeout=20000, wait_until="networkidle")
             self.logger.info("Body Done")
             # try:

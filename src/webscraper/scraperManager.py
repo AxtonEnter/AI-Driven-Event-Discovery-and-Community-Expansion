@@ -61,7 +61,7 @@ class scraperManager:
                 self.driver = PlaywrightDriver(individualLogger, headless=True, proxy=proxy)
             else:
                 self.driver = PlaywrightDriver(individualLogger, headless=True)
-            scraper = WebScraper(driver=self.driver, rootUrl=url, maxPages=100, sleepTime=1, logger=individualLogger)
+            scraper = WebScraper(driver=self.driver, rootUrl=url, maxPages=10, sleepTime=1, logger=individualLogger)
             self.scrapers.append(scraper)
         
         self.logger.info(f"Scraper Manager Initialized, concurrentScrapers: {concurrentScrapers}, urls: {urls}, url count: {len(urls)}, proxy: {self.proxyEnable}")
@@ -70,6 +70,7 @@ class scraperManager:
     async def crawlWithSemaphore(self, semaphore, scraper):
         """Ensures only X scrapers run at a time using a semaphore."""
         async with semaphore:  # Limits number of concurrent scrapers
+            # return await scraper.crawlMultiEventPage()
             return await scraper.crawlSite()
     
     async def concurrentCrawl(self):
@@ -80,3 +81,21 @@ class scraperManager:
             await scraper.close()
 
         await asyncio.gather(*(crawlAndClose(scraper) for scraper in self.scrapers))
+
+
+    async def crawlWithSemaphore(self, semaphore, scraper):
+        """Ensures only X scrapers run at a time using a semaphore."""
+        async with semaphore:  # Limits number of concurrent scrapers
+            # return await scraper.crawlMultiEventPage()
+            return await scraper.crawlMultiEventPage()
+
+    async def concurrentCrawlMulti(self):
+        await asyncio.gather(*(scraper.start() for scraper in self.scrapers))
+
+        async def crawlAndClose(scraper:WebScraper):
+            await self.crawlWithSemaphore(self.semaphore, scraper)
+            await scraper.close()
+
+        await asyncio.gather(*(crawlAndClose(scraper) for scraper in self.scrapers))
+
+        
