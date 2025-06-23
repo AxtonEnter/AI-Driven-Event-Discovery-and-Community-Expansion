@@ -51,7 +51,7 @@ def receive_sqs_message():
         messages = response.get("Messages", [])
         if messages:
             msg = messages[0]
-            # receipt_handle = msg["ReceiptHandle"]
+            #receipt_handle = msg["ReceiptHandle"] # commented out to delete message from SNS queue
             body = msg["Body"]
 
             try:
@@ -87,7 +87,8 @@ def receive_sqs_message():
                 "org_id": org_id,
                 "url": url,
                 "text": text,
-                "sqs_message": msg
+                "sqs_message": msg,
+                #"receipt_handle": receipt_handle # uncomment this to delete the message from SNS queue
             }
 
         else:
@@ -268,6 +269,19 @@ while True:
         )
     else:
         print("\n****No strong event-related presence detected. Full text block not returned.****")
+        
+    # Delete message from SQS after processing
+    # uncomment below to delete the messages from the SNS queue that have already been processed
+    """
+    try:
+        sqs.delete_message(
+            QueueUrl=QUEUE_URL,
+            ReceiptHandle=sqs_msg["receipt_handle"]
+        )
+        print("Deleted processed message from SQS.\n")
+    except Exception as e:
+        print(f"Failed to delete message from SQS: {e}")
+    """
 
     print("================ End of Prediction Summary =============================================================\n")
     print("\n--- Waiting for next SQS message... ---")
