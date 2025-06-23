@@ -2,7 +2,6 @@ import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # 0 = all logs, 1 = warnings, 2 = errors, 3 = fatal
 
 from keras_nlp.models import BertPreprocessor, BertClassifier
-from sklearn.metrics import classification_report, confusion_matrix
 from urllib.parse import urlparse
 from datetime import datetime
 from bs4 import BeautifulSoup
@@ -258,13 +257,6 @@ while True:
 
     # Simulate true label for demonstration purposes
     true_labels = [1]  # You can change this to 0 or fetch real labels during evaluation
-
-    # Print classification report and confusion matrix
-    #print("Classification Report:")
-    #print(classification_report(true_labels, predictions, labels=[0, 1], target_names=["NON-EVENT", "EVENT"]))
-
-    #print("Confusion Matrix:")
-    #print(confusion_matrix(true_labels, predictions))
 
     if pred_label == 1:
         print("\n**** Majority of blocks are EVENT-RELATED. SENDING full text block to database... ***")
