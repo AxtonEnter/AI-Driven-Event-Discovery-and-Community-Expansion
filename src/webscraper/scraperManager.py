@@ -2,6 +2,7 @@ import asyncio
 from proxy import OxylabsProxy
 from driver import PlaywrightDriver
 from scraper import WebScraper
+from scraperOrg import WebScraperOrg
 import logging
 from urllib.parse import urlparse
 import re
@@ -10,14 +11,17 @@ import sys
 from datetime import datetime
 
 class scraperManager:
-    def __init__(self, concurrentScrapers: int, urls: list, proxyEnable: bool = False):
+    def __init__(self, concurrentScrapers: int, urls: list, proxyEnable: bool = False, orgScraper: bool = False):
         """
         Initialize the scraper manager with a list of URLs and an optional proxy.
         """
         self.urls = urls
         self.proxyEnable = proxyEnable
         self.semaphore = asyncio.Semaphore(concurrentScrapers)
-        self.scrapers: list[WebScraper] = []
+        if orgScraper:
+            self.scrapers: list[WebScraperOrg] = []
+        else:
+            self.scrapers: list[WebScraper] = []
 
         # Logger Setup
         logger_name = "Scraper Manager"
@@ -42,7 +46,7 @@ class scraperManager:
 
         self.logger.addHandler(ch)
         self.logger.addHandler(fh)
-
+        
         for url in urls:
             # LOGGER SETUP
             parsed_url = urlparse(url)
@@ -61,7 +65,10 @@ class scraperManager:
                 self.driver = PlaywrightDriver(individualLogger, headless=True, proxy=proxy)
             else:
                 self.driver = PlaywrightDriver(individualLogger, headless=True)
-            scraper = WebScraper(driver=self.driver, rootUrl=url, maxPages=10, sleepTime=1, logger=individualLogger)
+            if orgScraper:
+                scraper = WebScraperOrg(driver=self.driver, rootUrl=url, logger=individualLogger, maxPages=10, sleepTime=1)
+            else:
+                scraper = WebScraper(driver=self.driver, rootUrl=url, maxPages=10, sleepTime=1, logger=individualLogger)
             self.scrapers.append(scraper)
         
         self.logger.info(f"Scraper Manager Initialized, concurrentScrapers: {concurrentScrapers}, urls: {urls}, url count: {len(urls)}, proxy: {self.proxyEnable}")
@@ -83,7 +90,7 @@ class scraperManager:
         await asyncio.gather(*(crawlAndClose(scraper) for scraper in self.scrapers))
 
 
-    async def crawlWithSemaphore(self, semaphore, scraper):
+    async def crawlMultiWithSemaphore(self, semaphore, scraper):
         """Ensures only X scrapers run at a time using a semaphore."""
         async with semaphore:  # Limits number of concurrent scrapers
             # return await scraper.crawlMultiEventPage()
@@ -93,7 +100,25 @@ class scraperManager:
         await asyncio.gather(*(scraper.start() for scraper in self.scrapers))
 
         async def crawlAndClose(scraper:WebScraper):
-            await self.crawlWithSemaphore(self.semaphore, scraper)
+            await self.crawlMultiWithSemaphore(self.semaphore, scraper)
+            await scraper.close()
+
+        await asyncio.gather(*(crawlAndClose(scraper) for scraper in self.scrapers))
+
+
+
+
+    async def crawlOrgWithSemaphore(self, semaphore, scraper):
+        """Ensures only X scrapers run at a time using a semaphore."""
+        async with semaphore:  # Limits number of concurrent scrapers
+            # return await scraper.crawlMultiEventPage()
+            return await scraper.crawlOrg()
+
+    async def concurrentOrgCrawl(self):
+        await asyncio.gather(*(scraper.start() for scraper in self.scrapers))
+
+        async def crawlAndClose(scraper:WebScraperOrg):
+            await self.crawlOrgWithSemaphore(self.semaphore, scraper)
             await scraper.close()
 
         await asyncio.gather(*(crawlAndClose(scraper) for scraper in self.scrapers))
