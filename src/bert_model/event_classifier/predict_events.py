@@ -176,9 +176,12 @@ while True:
 
     if not sqs_msg:
         continue  # Wait for new message in next loop
+    
+    total_messages += 1
+    message_start_time = time.time()
 
-    # Use SQS text field as model input
-    html_input = sqs_msg["text"]  # now holds the HTML
+    # HTML -> visible text
+    html_input = sqs_msg["text"]
     text_input = extract_visible_text_from_html(html_input)
     
     print("\nRunning MODEL PREDICTION on received text...\n")
@@ -186,7 +189,7 @@ while True:
     # Wrap single paragraph as a list to make it batch-friendly
     input_batch = [text_input]
 
-    # Predict
+    # Prediction
     logits = model.predict(input_batch, verbose=0)
     probs = tf.nn.softmax(logits, axis=-1).numpy()
     predictions = np.argmax(probs, axis=-1)
@@ -195,9 +198,24 @@ while True:
     confidence = probs[0][pred_label]
     label_str = "EVENT" if pred_label == 1 else "NON-EVENT"
 
+    # Track timing
+    message_duration = time.time() - message_start_time
+
+    # Simulate ground truth label (until real evaluation set is integrated)
+    true_label = 1
+    true_labels = [true_label]
+
+    # Accuracy tracking
+    if pred_label == true_label:
+        correct_predictions += 1
+
+    accuracy = correct_predictions / total_messages
+
     print("================ Prediction Result =====================================================================")
     print(f"Predicted Label: {label_str}")
     print(f"Confidence: {confidence:.2f}")
+    print(f"Processing Time: {message_duration:.3f} sec")
+    print(f"Running Accuracy (Simulated): {accuracy:.2%} ({correct_predictions}/{total_messages})")
 
     # Simulate true label for demonstration purposes
     true_labels = [1]  # You can change this to 0 or fetch real labels during evaluation
@@ -217,9 +235,6 @@ while True:
             text=text_input,
             html=html_input
         )
-        # print("=========== FULL EVENT TEXT BLOCK ===========")
-        # print(f"Text Preview: {text_input[:150]}...")
-        # print("=============================================\n")
     else:
         print("\n****No strong event-related presence detected. Full text block not returned.****")
 
