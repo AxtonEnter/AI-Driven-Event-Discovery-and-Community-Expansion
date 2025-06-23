@@ -199,6 +199,7 @@ while True:
 
     # Wrap single paragraph as a list to make it batch-friendly
     input_batch = [text_input]
+    model_prediction_time = time.time()
 
     # Prediction
     logits = model.predict(input_batch, verbose=0)
@@ -214,6 +215,7 @@ while True:
     """
     # Track timing
     message_duration = time.time() - message_start_time
+    prediction_duration = time.time() - model_prediction_time
     
     # Track confidence based on label
     if pred_label == 1:
@@ -248,7 +250,8 @@ while True:
     print("================ Prediction Result =====================================================================")
     print(f"Predicted Label: {label_str}")
     print(f"Confidence: {confidence:.2f}")
-    print(f"Processing Time: {message_duration:.3f} sec")
+    print(f"Total Processing Time: {message_duration:.3f} sec")
+    print(f"Model Prediction Processing Time: {prediction_duration:.3f} sec")
     print(f"Running Accuracy (Simulated): {accuracy:.2%} ({correct_predictions}/{total_messages})")
     if event_confidences:
         print(f"Avg EVENT Confidence: {np.mean(event_confidences):.2f}")
