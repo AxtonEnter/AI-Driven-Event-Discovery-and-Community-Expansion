@@ -18,6 +18,17 @@ total_messages = 0
 correct_predictions = 0
 start_total_time = time.time()
 
+# For average confidence tracking
+event_confidences = []
+non_event_confidences = []
+
+# For average processing time
+processing_times = []
+
+# For throughput tracking
+messages_this_minute = []
+current_minute = int(time.time() // 60)
+
 # Replace with queue URL
 QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/main-queue"
 
@@ -198,8 +209,28 @@ while True:
     confidence = probs[0][pred_label]
     label_str = "EVENT" if pred_label == 1 else "NON-EVENT"
 
+    """
+    # Tracking accuracy & performance time below
+    """
     # Track timing
     message_duration = time.time() - message_start_time
+    
+    # Track confidence based on label
+    if pred_label == 1:
+        event_confidences.append(confidence)
+    else:
+        non_event_confidences.append(confidence)
+
+    # Track processing time
+    processing_times.append(message_duration)
+
+    # Track throughput
+    now_minute = int(time.time() // 60)
+    if now_minute != current_minute:
+        print(f"Throughput: {len(messages_this_minute)} messages processed in the last minute")
+        messages_this_minute.clear()
+        current_minute = now_minute
+    messages_this_minute.append(1)
 
     # Simulate ground truth label (until real evaluation set is integrated)
     true_label = 1
@@ -210,12 +241,20 @@ while True:
         correct_predictions += 1
 
     accuracy = correct_predictions / total_messages
+    """
+    # Tracking accuracy & performance time above
+    """
 
     print("================ Prediction Result =====================================================================")
     print(f"Predicted Label: {label_str}")
     print(f"Confidence: {confidence:.2f}")
     print(f"Processing Time: {message_duration:.3f} sec")
     print(f"Running Accuracy (Simulated): {accuracy:.2%} ({correct_predictions}/{total_messages})")
+    if event_confidences:
+        print(f"Avg EVENT Confidence: {np.mean(event_confidences):.2f}")
+    if non_event_confidences:
+        print(f"Avg NON-EVENT Confidence: {np.mean(non_event_confidences):.2f}")
+    print(f"Avg Processing Time: {np.mean(processing_times):.3f} sec/message")
 
     # Simulate true label for demonstration purposes
     true_labels = [1]  # You can change this to 0 or fetch real labels during evaluation
