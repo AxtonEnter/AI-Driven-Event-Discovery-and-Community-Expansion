@@ -46,7 +46,7 @@ def receive_sqs_message():
         response = sqs.receive_message(
             QueueUrl=QUEUE_URL,
             MaxNumberOfMessages=1,
-            WaitTimeSeconds=5
+            WaitTimeSeconds=1
         )
         messages = response.get("Messages", [])
         if messages:
@@ -58,7 +58,10 @@ def receive_sqs_message():
                 payload_preview = json.loads(body)
                 if isinstance(payload_preview, list) and len(payload_preview) == 3:
                     short_text = payload_preview[2][:150] + "..."
-                    print(f"\nRaw SQS Message Body Preview:\n[{payload_preview[0]}, \"{payload_preview[1]}\", \"{short_text}\"]\n")
+                    print(f"\nRaw SQS Message Body Preview:\n[{payload_preview[0]}, \"{payload_preview[1]}\", \"{short_text}\]\n")
+                elif isinstance(payload_preview, list) and len(payload_preview) == 4:
+                    short_text = payload_preview[2][:150] + "..."
+                    print(f"\nRaw SQS Message Body Preview:\n[{payload_preview[0]}, \"{payload_preview[1]}\", \"{short_text}\", \"{payload_preview[3][:5]}...\"]\n")
                 else:
                     print("\nRaw SQS Message Body:\n", body)
             except Exception:
@@ -74,20 +77,28 @@ def receive_sqs_message():
             # Confirm expected format
             if not isinstance(payload, list) or len(payload) != 3:
                 print("Message is not a list with 3 elements.")
+            elif not isinstance(payload, list) or len(payload) != 4:
+                print("Message is not a list with 4 elements.")
+            elif not isinstance(payload, list) or len(payload) < 3:
+                print("Message is a list with less than 3 elements.")
+            else:
+                print("Message is a list with more than 4 elements")
                 return None
 
-            org_id, url, text = payload
+            org_id, url, html, image = payload
             print("\nExtracted SNS Payload:")
             print(f"- org_id: {org_id}")
             print(f"- url: {url}")
-            print(f"- text: {text[:150]}...\n")  # Limit print length
+            print(f"- html: {html[:150]}...")  # Limit print length
+            print(f"- image_url: {image[:5]}...\n")
 
             # return the message and receipt handle for processing/deletion
             return {
                 "org_id": org_id,
                 "url": url,
-                "text": text,
+                "html": html,
                 "sqs_message": msg,
+                "image_url": image
                 #"receipt_handle": receipt_handle # uncomment this to delete the message from SNS queue
             }
 
@@ -192,7 +203,7 @@ while True:
     message_start_time = time.time()
 
     # HTML -> visible text
-    html_input = sqs_msg["text"]
+    html_input = sqs_msg["html"]
     text_input = extract_visible_text_from_html(html_input)
     
     print("\nRunning MODEL PREDICTION on received text...\n")
