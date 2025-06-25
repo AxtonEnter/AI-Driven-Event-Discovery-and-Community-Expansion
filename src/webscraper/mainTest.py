@@ -38,9 +38,9 @@ async def multiEventPageTest():
 async def main():
     # await testScraperManager()
     # await testScraperManagerNoProxy()
-    # await testScraperManagerSingle()
+    await testScraperManagerSingle()
     # await testScraperManagerSetup()
-    await multiEventPageTest()
+    # await multiEventPageTest()
 
 
 if __name__ == "__main__":
