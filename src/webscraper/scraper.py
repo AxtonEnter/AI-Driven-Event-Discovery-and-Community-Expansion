@@ -145,7 +145,15 @@ class WebScraper:
         text = await self.soupToText(soup)
 
         images = soup.find_all('img')
-        imageUrls = [img['data-image'] for img in images]
+        imageUrls = []
+        for img in images:
+            # common url attributes
+            for attr in ["src", "data-src", "data-original", "data-lazy", "data-srcset"]:
+                imgUrl = img.get(attr)
+                if imgUrl:
+                    imageUrls.append(imgUrl)
+                    break
+
         self.logger.info(f"Found {len(imageUrls)} image(s) on the page.")
         # print(images)
 
@@ -184,11 +192,11 @@ class WebScraper:
             messageInfo = [orgId, url, html, imageUrls]
             message = json.dumps(messageInfo)
             self.logger.info(f"Message: [OrgId:{orgId}, URL:{url}, HTML:{html[:50]}..., Images:{len(imageUrls)}]")
-            response = self.sqs.send_message(
-                QueueUrl=QUEUE_URL,
-                MessageBody=message
-            )
-            self.logger.info(f"Message Sent: {response['MessageId']}")
+            # response = self.sqs.send_message(
+            #     QueueUrl=QUEUE_URL,
+            #     MessageBody=message
+            # )
+            # self.logger.info(f"Message Sent: {response['MessageId']}")
 
 
         # For each link, convert partial urls to full and check if its on root site
