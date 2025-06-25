@@ -139,23 +139,18 @@ class WebScraper:
         return visited
     
     """
-    New method specifically for getting data to train the model
+    New methods specifically for getting data to train the model
     """
-    async def extractStructuredEventBlocks(self, soup):
+    async def extractStructuredEventAndFullText(self, soup):
         """
-        Extract structured event-related sections from known HTML patterns (e.g., .entry, .event).
+        Extract structured event content + full page text.
         Returns:
-            (event_blocks, full_page_text)
+            (event_blocks, full_text)
         """
         event_selectors = [
-            ".entry",               # Lucky Ladd, WordPress common
-            ".event",               # Generic catch-all
-            ".event-item",          # Calendar plugins
-            ".event-block",         # Custom CMS
-            ".event-container",     # Another variation
-            ".event-listing",
-            "[id*=event]",
-            "[class*=event]"
+            ".entry", ".event", ".event-item", ".event-block",
+            ".event-container", ".event-listing",
+            "[id*=event]", "[class*=event]"
         ]
 
         event_blocks = []
@@ -165,13 +160,18 @@ class WebScraper:
             matches = soup.select(selector)
             for match in matches:
                 block_text = match.get_text(separator=" ", strip=True)
-                # This if statement will help to filter out very short or duplicate blocks
                 if block_text and block_text not in seen_texts and len(block_text.split()) >= 10:
                     seen_texts.add(block_text)
                     event_blocks.append(block_text)
 
         full_text = await self.soupToText(soup)
         return event_blocks, full_text
+
+    async def extractFullPageTextOnly(self, soup):
+        """
+        Get the full visible text of a page, used for NON-EVENT pages.
+        """
+        return await self.soupToText(soup)
     
     async def crawlMultiEventPage(self, url):
         """
