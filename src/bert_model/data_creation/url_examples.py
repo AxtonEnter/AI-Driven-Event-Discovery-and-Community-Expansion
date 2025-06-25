@@ -1,5 +1,4 @@
 url_examples = [
-    "http://www.thegoodcomedy.com",
     "https://chiceventsdc.com/",
     "https://www.virtualrunevent.com/",
     "http://stateparks.utah.gov",
