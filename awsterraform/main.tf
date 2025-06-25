@@ -80,7 +80,6 @@ module "s3" {
   bucket_name = var.bucket_name
 }
 
-
 module "lambda_function" {
   source = "./lambda"
 
@@ -98,4 +97,12 @@ module "lambda_function" {
     DB_USER       = var.db_username
     DB_PASS       = var.db_password
   }
+}
+
+module "cognito" {
+  source         = "./cognito"
+  user_pool_name = "my-user-pool"
+  client_name    = "my-client"
+  callback_urls = ["http://localhost:3000/callback"]
+  logout_urls   = ["http://localhost:3000/"]
 }
