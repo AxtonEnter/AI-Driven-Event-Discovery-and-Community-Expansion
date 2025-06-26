@@ -10,7 +10,7 @@ import json
 from collections import Counter
 import hashlib
 
-QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/main-queue"
+QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/page-data"
 
 DB_HOST = "test-database-jdb.c8v60oyuezl3.us-east-1.rds.amazonaws.com"
 DB_NAME = "postgres"
