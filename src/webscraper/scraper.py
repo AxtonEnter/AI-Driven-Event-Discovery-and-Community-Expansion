@@ -9,6 +9,7 @@ import psycopg2
 import json
 from collections import Counter
 import hashlib
+from org import Org
 
 QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/page-data"
 
@@ -20,14 +21,13 @@ DB_PORT = 5432
 
 
 class WebScraper:
-    def __init__(self, driver, rootUrl, logger: logging.Logger, maxPages=100, sleepTime=1, isMultiEvent=False):
+    def __init__(self, driver, org: Org, logger: logging.Logger, maxPages=100, sleepTime=1):
         self.driver = driver
+        self.org = org
         self.maxPages = maxPages
         self.sleepTime = sleepTime
         self.visited = set()
         self.visitedCount = 0
-        self.rootUrl = rootUrl
-        self.isMultiEvent = isMultiEvent
         self.emails = []
         self.logger = logger
 
@@ -105,8 +105,8 @@ class WebScraper:
             self.logger.info(f"Starting Crawl")
         
         if url is None:
-            url = self.rootUrl
-        
+            url = self.org.url
+
         # Page Limit Check
         if len(visited) >= self.maxPages:
             return []
@@ -192,11 +192,11 @@ class WebScraper:
             messageInfo = [orgId, url, html, imageUrls]
             message = json.dumps(messageInfo)
             self.logger.info(f"Message: [OrgId:{orgId}, URL:{url}, HTML:{html[:50]}..., Images:{len(imageUrls)}]")
-            # response = self.sqs.send_message(
-            #     QueueUrl=QUEUE_URL,
-            #     MessageBody=message
-            # )
-            # self.logger.info(f"Message Sent: {response['MessageId']}")
+            response = self.sqs.send_message(
+                QueueUrl=QUEUE_URL,
+                MessageBody=message
+            )
+            self.logger.info(f"Message Sent: {response['MessageId']}")
 
 
         # For each link, convert partial urls to full and check if its on root site
@@ -330,4 +330,7 @@ class WebScraper:
     async def close(self):
         """Close the browser when done."""
         await self.driver.close()
+        sql = "INSERT INTO updates VALUES (%s, %s);"
+        self.cur.execute(sql, (self.org.id, "DONE",))
+        self.conn.commit()
         self.logger.info("Closed Driver - Scraper")

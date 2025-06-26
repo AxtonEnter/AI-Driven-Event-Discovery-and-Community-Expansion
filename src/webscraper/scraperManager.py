@@ -8,13 +8,14 @@ import re
 import os
 import sys
 from datetime import datetime
+from org import Org
 
 class scraperManager:
-    def __init__(self, concurrentScrapers: int, urls: list, proxyEnable: bool = False):
+    def __init__(self, concurrentScrapers: int, orgs: list[Org], proxyEnable: bool = False):
         """
-        Initialize the scraper manager with a list of URLs and an optional proxy.
+        Initialize the scraper manager with a list of organizations and an optional proxy.
         """
-        self.urls = urls
+        self.orgs = orgs
         self.proxyEnable = proxyEnable
         self.semaphore = asyncio.Semaphore(concurrentScrapers)
         self.scrapers: list[WebScraper] = []
@@ -42,10 +43,10 @@ class scraperManager:
 
         self.logger.addHandler(ch)
         self.logger.addHandler(fh)
-        
-        for url in urls:
+
+        for org in orgs:
             # LOGGER SETUP
-            parsed_url = urlparse(url)
+            parsed_url = urlparse(org.url)
             domain = parsed_url.netloc.replace("www.", "")
             safe_name = re.sub(r'[^\w\-_.]', '_', domain)  # Just in case
             logger_name = f"Scraper[{safe_name}]"
@@ -61,11 +62,11 @@ class scraperManager:
                 self.driver = PlaywrightDriver(individualLogger, headless=True, proxy=proxy)
             else:
                 self.driver = PlaywrightDriver(individualLogger, headless=True)
-            scraper = WebScraper(driver=self.driver, rootUrl=url, maxPages=10, sleepTime=1, logger=individualLogger)
+            scraper = WebScraper(driver=self.driver, rootUrl=org.url, maxPages=10, sleepTime=1, logger=individualLogger)
             self.scrapers.append(scraper)
-        
-        self.logger.info(f"Scraper Manager Initialized, concurrentScrapers: {concurrentScrapers}, urls: {urls}, url count: {len(urls)}, proxy: {self.proxyEnable}")
-            
+
+        self.logger.info(f"Scraper Manager Initialized, concurrentScrapers: {concurrentScrapers}, orgs: {orgs}, org count: {len(orgs)}, proxy: {self.proxyEnable}")
+
 
     async def crawlWithSemaphore(self, semaphore, scraper):
         """Ensures only X scrapers run at a time using a semaphore."""
