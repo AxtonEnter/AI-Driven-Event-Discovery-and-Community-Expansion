@@ -188,10 +188,9 @@ class WebScraper:
         
         if messageRequired:
             # Send SNS Message
-            orgId = 52
-            messageInfo = [orgId, url, html, imageUrls]
+            messageInfo = [self.org.id, url, html, imageUrls]
             message = json.dumps(messageInfo)
-            self.logger.info(f"Message: [OrgId:{orgId}, URL:{url}, HTML:{html[:50]}..., Images:{len(imageUrls)}]")
+            self.logger.info(f"Message: [OrgId:{messageInfo[0]}, URL:{messageInfo[1]}, HTML:{messageInfo[2][:50]}..., Images:{len(messageInfo[3])}]")
             response = self.sqs.send_message(
                 QueueUrl=QUEUE_URL,
                 MessageBody=message
@@ -203,9 +202,9 @@ class WebScraper:
         # If so: create a recursive call to crawl the url
         for link in soup.find_all('a', href=True):
             href = link['href']
-            full_url = urljoin(self.rootUrl, href)
+            full_url = urljoin(self.org.url, href)
 
-            if full_url.startswith(self.rootUrl) and full_url not in visited:
+            if full_url.startswith(self.org.url) and full_url not in visited:
                 await self.crawlSite(full_url, visited)
         
         return visited
@@ -247,7 +246,7 @@ class WebScraper:
     
 
     async def crawlMultiEventPage(self):
-        url = self.rootUrl
+        url = self.org.url
 
         soup = await self.getSoup(url)
         if soup is None:
@@ -330,7 +329,7 @@ class WebScraper:
     async def close(self):
         """Close the browser when done."""
         await self.driver.close()
-        sql = "INSERT INTO updates VALUES (%s, %s);"
-        self.cur.execute(sql, (self.org.id, "DONE",))
-        self.conn.commit()
+        # sql = "INSERT INTO updates VALUES (%s, %s);"
+        # self.cur.execute(sql, (self.org.id, "DONE",))
+        # self.conn.commit()
         self.logger.info("Closed Driver - Scraper")

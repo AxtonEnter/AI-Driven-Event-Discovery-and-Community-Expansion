@@ -62,7 +62,7 @@ class scraperManager:
                 self.driver = PlaywrightDriver(individualLogger, headless=True, proxy=proxy)
             else:
                 self.driver = PlaywrightDriver(individualLogger, headless=True)
-            scraper = WebScraper(driver=self.driver, rootUrl=org.url, maxPages=10, sleepTime=1, logger=individualLogger)
+            scraper = WebScraper(driver=self.driver, org=org, maxPages=10, sleepTime=1, logger=individualLogger)
             self.scrapers.append(scraper)
 
         self.logger.info(f"Scraper Manager Initialized, concurrentScrapers: {concurrentScrapers}, orgs: {orgs}, org count: {len(orgs)}, proxy: {self.proxyEnable}")
