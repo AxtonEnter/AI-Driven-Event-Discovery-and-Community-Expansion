@@ -11,9 +11,9 @@
     "fast-xml-parser": "^4.4.1",
     "strnum": "^1.1.2",
     "tslib": "^2.8.1",
+    "tsx": "^4.20.3",
     "uuid": "^9.0.1"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "fix": "cd src/webui && ts-jest config:migrate jest.config.js",
