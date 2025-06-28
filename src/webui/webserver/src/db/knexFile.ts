@@ -4,7 +4,7 @@ import process from "process";
 
 const __dirname = path.resolve(path.dirname(''))
 
-// process.loadEnvFile(__dirname + "/.env");
+if (!process.env.NODE_ENV) process.loadEnvFile(__dirname + "/.env");
 
 // Update with your config settings.
 
