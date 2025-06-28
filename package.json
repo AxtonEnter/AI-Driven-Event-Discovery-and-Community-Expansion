@@ -16,14 +16,14 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "fix": "cd src/webui && ts-jest config:migrate jest.config.js",
-    "start": "tsx src/webui/webserver/dist/server.js",
-    "build": "cd src/webui && npm run build:server && npm run build:client",
-    "build:ps": "cd src/webui && (npm run build:server:ps) && (npm run build:client:ps)",
-    "build:server": "cd src/webui/webserver/ && npm install --force && tsc  --build --clean && tsc -p .",
-    "build:server:ps": "(cd srv/webui/webserver/) -and (npm install --force) -and (tsc --build) -and (tsc -p .)",
-    "build:client": "cd src/webui/client/ && npm install --force && npm run build",
-    "build:client:ps": "(cd src/webui/client/) -and n(pm install --force) -and (npm run build)"
+    "fix": "cd src/webui && npm run fix",
+    "start": "cd src/webui && npm run start",
+    "build": "cd src/webui && npm run build",
+    "build:ps": "cd src/webui && (npm run build)",
+    "build:server": "cd src/webui && npm run build:server",
+    "build:server:ps": "(cd srv/webui) -and (npm run build:server:ps)",
+    "build:client": "cd src/webui && npm run build:client",
+    "build:client:ps": "(cd src/webui) -and (npm run build:client:ps)"
   },
   "repository": {
     "type": "git",
