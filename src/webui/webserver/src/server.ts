@@ -32,10 +32,10 @@ const CORS_CONFIG = {
 };
 
 // Load SSL certificates
-const credentials = {
-  key: fs.readFileSync("./cert/private-key.pem"),
-  cert: fs.readFileSync("./cert/certificate.pem"),
-};
+// const credentials = {
+//   key: fs.readFileSync("./cert/private-key.pem"),
+//   cert: fs.readFileSync("./cert/certificate.pem"),
+// };
 
 
 const __dirname = path.resolve(path.dirname(''))
