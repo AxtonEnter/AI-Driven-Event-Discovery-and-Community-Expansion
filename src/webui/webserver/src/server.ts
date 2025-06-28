@@ -19,6 +19,7 @@ import fs from "fs"
 import https from "https"
 import { expressMiddleware } from "@as-integrations/express5";
 import { ApolloContext } from "./context.js";
+import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 
 const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollographql.com"];
 
@@ -43,7 +44,7 @@ const __dirname = path.resolve(path.dirname(''))
  * Initialize the server runner
  */
 async function startServer() {
-  process.loadEnvFile(__dirname + "/.env");
+  //process.loadEnvFile(__dirname + "/.env");
 
   //Init with Node Express
   const app = express();
@@ -122,8 +123,6 @@ async function startServer() {
     res.header
     res.sendFile(path.join(__dirname, "/client/dist", "index.html"));
   });
-
-
 
 
   const server = new ApolloServer({
