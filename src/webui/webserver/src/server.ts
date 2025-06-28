@@ -143,7 +143,7 @@ async function startServer() {
       }),
   );
 
-  const httpServer = https.createServer(credentials, app);
+  const httpServer = createServer(app);
 
   const PORT = process.env.PORT || 3000;
 
