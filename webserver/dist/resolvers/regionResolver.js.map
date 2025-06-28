@@ -1,0 +1,1 @@
+{"version":3,"file":"regionResolver.js","sourceRoot":"","sources":["../../src/resolvers/regionResolver.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,MAAM,+BAA+B,CAAC;AAEhE,MAAM,CAAC,MAAM,cAAc,GAAG;IAC5B,KAAK,EAAE;QACL,MAAM,EAAE,KAAK,EACX,OAAY,EACZ,IAAoB,EAAE,EAAE;YACtB,OAAO,MAAM,eAAe,CAAC,IAAI,CAAC,IAAI,CAAC,CAAC;QAC1C,CAAC;KACJ;CACF,CAAA"}
