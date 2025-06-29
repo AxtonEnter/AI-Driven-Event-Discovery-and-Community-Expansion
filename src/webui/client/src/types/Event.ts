@@ -3,8 +3,8 @@ import { Tag } from "./Tag";
 import { User } from "./User";
 
 export enum ApprovalStatus {
-    APPROVED,
-    REJECTED,
+  APPROVED,
+  REJECTED,
 }
 
 export type EventItem = {
@@ -18,5 +18,6 @@ export type EventItem = {
   rejectedreason?: string;
   user?: User;
   organization?: Organization;
-  tags: Tag[]
-}
+  tags: Tag[];
+  images: string[];
+};

@@ -1,0 +1,38 @@
+{
+  "name": "ai-driven-event-discovery-and-community-expansion",
+  "version": "0.5.3",
+  "description": "",
+  "main": "src/webserver/dist/server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {
+    "bowser": "^2.11.0",
+    "fast-xml-parser": "^4.4.1",
+    "strnum": "^1.1.2",
+    "tslib": "^2.8.1",
+    "tsx": "^4.20.3",
+    "uuid": "^9.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "fix": "cd src/webui && npm run fix",
+    "start": "cd src/webui && npm run start",
+    "build": "cd src/webui && npm run build",
+    "build:ps": "cd src/webui && (npm run build)",
+    "build:server": "cd src/webui && npm run build:server",
+    "build:server:ps": "(cd srv/webui) -and (npm run build:server:ps)",
+    "build:client": "cd src/webui && npm run build:client",
+    "build:client:ps": "(cd src/webui) -and (npm run build:client:ps)"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evstod/AI-Driven-Event-Discovery-and-Community-Expansion.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/evstod/AI-Driven-Event-Discovery-and-Community-Expansion/issues"
+  },
+  "homepage": "https://github.com/evstod/AI-Driven-Event-Discovery-and-Community-Expansion#readme"
+}

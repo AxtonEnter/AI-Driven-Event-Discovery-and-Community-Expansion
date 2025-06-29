@@ -19,6 +19,7 @@ import fs from "fs"
 import https from "https"
 import { expressMiddleware } from "@as-integrations/express5";
 import { ApolloContext } from "./context.js";
+import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 
 const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollographql.com"];
 
@@ -31,10 +32,10 @@ const CORS_CONFIG = {
 };
 
 // Load SSL certificates
-const credentials = {
-  key: fs.readFileSync("./cert/private-key.pem"),
-  cert: fs.readFileSync("./cert/certificate.pem"),
-};
+// const credentials = {
+//   key: fs.readFileSync("./cert/private-key.pem"),
+//   cert: fs.readFileSync("./cert/certificate.pem"),
+// };
 
 
 const __dirname = path.resolve(path.dirname(''))
@@ -43,7 +44,7 @@ const __dirname = path.resolve(path.dirname(''))
  * Initialize the server runner
  */
 async function startServer() {
-  process.loadEnvFile(__dirname + "/.env");
+  if (!process.env.NODE_ENV) process.loadEnvFile(__dirname + "/.env");
 
   //Init with Node Express
   const app = express();
@@ -74,6 +75,7 @@ async function startServer() {
     // view engine setup
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'ejs');
+
 
     setupDevAuth(app);
   }
@@ -124,8 +126,6 @@ async function startServer() {
   });
 
 
-
-
   const server = new ApolloServer({
     schema,
     plugins: [],
@@ -144,7 +144,7 @@ async function startServer() {
       }),
   );
 
-  const httpServer = https.createServer(credentials, app);
+  const httpServer = createServer(app);
 
   const PORT = process.env.PORT || 3000;
 
@@ -156,5 +156,6 @@ async function startServer() {
     )
   );
 }
+
 
 startServer();

@@ -1,10 +1,11 @@
 {
-  "name": "ai-driven-event-discovery",
+  "name": "ai-driven-event-discovery_webui",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "fix": "ts-jest config:migrate jest.config.js",
-    "start": "tsx webserver/dist/server.js",
+    "start:nobuild": "tsx webserver/dist/server.js",
+    "start": "npm run build && tsx webserver/dist/server.js",
     "build": "npm run build:server && npm run build:client",
     "build:ps": "(npm run build:server:ps) && (npm run build:client:ps)",
     "build:server": "cd webserver/ && npm install --force && tsc  --build --clean && tsc -p .",
@@ -15,6 +16,7 @@
   "dependencies": {
     "@apollo/server": "^4.3.3",
     "@as-integrations/express5": "^1.0.0",
+    "@aws-sdk/client-sns": "^3.839.0",
     "@emotion/react": "^11.14.0",
     "@types/compression": "^1.7.5",
     "@types/express": "^5.0.1",
