@@ -6,26 +6,50 @@ locals {
     aws_key = "us-east-1"   # Change this to your desired AWS region
 }
 
-resource "aws_instance" "my_server" {
-  ami           = data.aws_ami.amazonlinux.id
-  instance_type = var.instance_type
-  key_name      = var.key_name
+
+resource "aws_vpc" "model_vpc" {
+  cidr_block = "172.31.0.0/16"
+  tags = {
+    Name = "model vpc"
+  }
 }
 
-resource "aws_security_group" "ec2_sg" {
-  name        = "ec2_sg_model"
-  description = "Allow inbound traffic on port 80 and 22"
+resource "aws_internet_gateway" "model_internet_gateway" {
+  vpc_id = aws_vpc.model_vpc.id
+}
 
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+resource "aws_subnet" "model_subnet" {
+  vpc_id            = aws_vpc.model_vpc.id
+  cidr_block        = "172.31.10.0/24"
+  availability_zone = "us-east-1a"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "model subnet"
   }
-  
-  ingress {
-    from_port   = 22
-    to_port     = 22
+}
+
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.model_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.model_internet_gateway.id
+  }
+}
+
+resource "aws_route_table_association" "public_assoc" {
+  subnet_id      = aws_subnet.model_subnet.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+resource "aws_security_group" "rdp_sg" {
+  name        = "ec2_sg_webscraper"
+  description = "Allow inbound traffic via rdp"
+  vpc_id = aws_vpc.model_vpc.id
+  ingress  { 
+    from_port   = 3389
+    to_port     = 3389
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -38,24 +62,22 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
-#strategey 1 is through s3 buckets
+resource "aws_instance" "model_server" {
+  ami           = "ami-0dd45672b9b6a5fd8"
+  instance_type = var.instance_type
+  subnet_id = aws_subnet.model_subnet.id
+  key_name      = var.key_name
+  vpc_security_group_ids = [aws_security_group.rdp_sg.id]
+  associate_public_ip_address = true          
+  tags = {
+    Name = "Model"
+  }
+ 
+ /* user_data = <<EOF
+#!/bin/bash
 
-resource "aws_s3_bucket" "example" {
-  bucket = "ai-event-discovery-model-tf-test-bucket"
+EOF
+*/
 }
 
-resource "aws_s3_object" "object1" {
-
-  for_each = fileset("uploads/", "*")
-
-  bucket = aws_s3_bucket.example.id
-
-  key = each.value
-
-  source = "uploads/${each.value}"
-
-  etag = filemd5("uploads/${each.value}")
-
-}
-
-#strategey 2 is through file provisioners, still figuring this out
+#No longer provisioning s3 due to AMI inclusion of files

@@ -11,50 +11,20 @@ provider "aws" {
     region = "us-east-1"
 }
 
-locals {
+module "queue" {
+  source = "./queue"
 }
-
-resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  tags = {
-    Name = "main-vpc"
-  }
-}
-
-resource "aws_subnet" "subnet_a" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
-}
-
-resource "aws_subnet" "subnet_b" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "us-east-1b"
-  map_public_ip_on_launch = true
-}
-
 
 # we are handling variables in modules now each module will just call source for simplicity sake. 
-
 /*
- module "webscrapper" {
-  source        = "./webscrapper"
- }
-
-/*
-module "model_stack" {
+module "model" {
   source        = "./model"
 }
-
-
 
 module "lambda_function" {
  source = "./lambda"
 }
-*/
+
 
 module "rds" {
  source = "./rds"
@@ -106,3 +76,4 @@ module "cognito" {
   callback_urls = ["http://localhost:3000/callback"]
   logout_urls   = ["http://localhost:3000/"]
 }
+*/

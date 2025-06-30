@@ -1,10 +1,10 @@
 variable "instance_type" {
  type        = string
  description = "Instance type for the EC2 instance"
- default     = "t2.micro"
+ default     = "t3.large"
 }
 
 variable "key_name" {
     type = string
-    default = "EventDiscoveryKey" #keyname here
+    default = "EventDiscovery" #keyname here
 }
