@@ -11,12 +11,13 @@ provider "aws" {
     region = "us-east-1"
 }
 
-module "queue" {
-  source = "./queue"
-}
+
 
 # we are handling variables in modules now each module will just call source for simplicity sake. 
 /*
+module "queue" {
+  source = "./queue"
+}
 module "model" {
   source        = "./model"
 }
