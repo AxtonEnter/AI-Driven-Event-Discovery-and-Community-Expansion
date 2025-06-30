@@ -5,6 +5,8 @@ import AppRoutes from './routes.js';
 import { theme } from './Theme.js';
 
 function App() {
+  process.loadEnvFile(__dirname + "/../.env");
+
   const apolloClient = new ApolloClient({
     uri: process.env.REACT_APP_GRAPHQL_URL ?? "https://localhost:3000/graphql",
     credentials: "include",

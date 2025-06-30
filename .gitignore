@@ -1,26 +1,26 @@
 # IDE
 .vscode
 
-# node
+# # node
 **/node_modules
-process.env
+# process.env
 
-# env
-.env
-.env.*
-!.env.example
+# # env
+# .env
+# .env.*
+# !.env.example
 
 # secret
 .pem
 /server/cert
 
 # Transpiled Server Files
-/src/webserver/dist
+# /src/webserver/dist
 
 # React build
-/src/webui/client/dist
-/src/webui/webserver/dist
-dist/
+# /src/webui/client/dist
+# /src/webui/webserver/dist
+# dist/
 coverage/
 npm-debug.log
 box-node-express-skeleton-app/app/config/local.js
