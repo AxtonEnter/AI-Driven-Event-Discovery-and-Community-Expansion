@@ -9,8 +9,9 @@ import psycopg2
 import json
 from collections import Counter
 import hashlib
+from org import Org
 
-QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/main-queue"
+QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/page-data"
 
 DB_HOST = "test-database-jdb.c8v60oyuezl3.us-east-1.rds.amazonaws.com"
 DB_NAME = "postgres"
@@ -20,14 +21,13 @@ DB_PORT = 5432
 
 
 class WebScraper:
-    def __init__(self, driver, rootUrl, logger: logging.Logger, maxPages=100, sleepTime=1, isMultiEvent=False):
+    def __init__(self, driver, org: Org, logger: logging.Logger, maxPages=100, sleepTime=1):
         self.driver = driver
+        self.org = org
         self.maxPages = maxPages
         self.sleepTime = sleepTime
         self.visited = set()
         self.visitedCount = 0
-        self.rootUrl = rootUrl
-        self.isMultiEvent = isMultiEvent
         self.emails = []
         self.logger = logger
 
@@ -55,13 +55,25 @@ class WebScraper:
         Start the Playwright browser for this scraper.
         """
         await self.driver.start()
+    
+    async def getHtml(self, url):
+        """
+        Get the HTML content of a page using the driver.
+        """
+        html = await self.driver.getHtml(url)
+        # returns false upon IP ban limit
+        if html is False:
+            return None
 
-    async def getSoup(self, url):
+        if html is None:
+            return None
+        
+        return html
+
+    async def getSoup(self, html):
         """
         From a URL, get the soup object with some dynamic elements removed.
         """
-        html = await self.driver.getHtml(url)
-
         # returns false upon IP ban limit
         if html is False:
             return None
@@ -93,8 +105,8 @@ class WebScraper:
             self.logger.info(f"Starting Crawl")
         
         if url is None:
-            url = self.rootUrl
-        
+            url = self.org.url
+
         # Page Limit Check
         if len(visited) >= self.maxPages:
             return []
@@ -105,7 +117,6 @@ class WebScraper:
         
         # Debug
         self.logger.info(f"Visiting: {url}")
-        # print(url)
         
         # Check if URL contains date and disallow past dates
         dates = utils.stringDateCheck(url)
@@ -123,8 +134,9 @@ class WebScraper:
         visited.add(url)
         self.visitedCount += 1
 
-        # Connect to page and return html using Selenium (runs js)
-        soup = await self.getSoup(url)
+        # Connect to page and return html
+        html = await self.getHtml(url)
+        soup = await self.getSoup(html)
         
         if soup is None:
             return []
@@ -132,17 +144,20 @@ class WebScraper:
         # Get the visible text
         text = await self.soupToText(soup)
 
-        # images = soup.find_all('img')
+        images = soup.find_all('img')
+        imageUrls = []
+        for img in images:
+            # common url attributes
+            for attr in ["src", "data-src", "data-original", "data-lazy", "data-srcset"]:
+                imgUrl = img.get(attr)
+                if imgUrl:
+                    imageUrls.append(imgUrl)
+                    break
+
+        self.logger.info(f"Found {len(imageUrls)} image(s) on the page.")
         # print(images)
 
-        # Check for emails
-        # words = text.split(" ")
-        # for word in words:
-        #     if "@" in word:
-        #         if word not in self.emails:
-        #             self.emails.append(word)
-
-        newPage = False
+        messageRequired = False
 
         # Check page hash
         textHash = utils.hashText(text)
@@ -152,14 +167,14 @@ class WebScraper:
 
         if response == None or response == []: # New Page (No Hash)
             self.logger.info("New Page - No Hash Stored: Sending to Model")
-            newPage = True
+            messageRequired = True
             sql = "INSERT INTO url_hashes VALUES (%s, %s);"
             self.cur.execute(sql, (url, textHash,))
             self.conn.commit()
         else:
             if response[1] != textHash: # Page has changed
                 self.logger.info("Page has changed - Updating Hash: Sending to Model")
-                newPage = True
+                messageRequired = True
                 sql = "UPDATE url_hashes SET textHash = %s WHERE url = %s;"
                 self.cur.execute(sql, (textHash, url,))
                 self.conn.commit()
@@ -171,12 +186,11 @@ class WebScraper:
                 self.logger.info("Page has not changed")
                 pass
         
-        if newPage:
+        if messageRequired:
             # Send SNS Message
-            orgId = 52
-            messageInfo = [orgId, url, text]
+            messageInfo = [self.org.id, url, html, imageUrls]
             message = json.dumps(messageInfo)
-            self.logger.info(f"Message: [OrgId:{orgId}, URL:{url}, Text:{text[:50]}...]")
+            self.logger.info(f"Message: [OrgId:{messageInfo[0]}, URL:{messageInfo[1]}, HTML:{messageInfo[2][:50]}..., Images:{len(messageInfo[3])}]")
             response = self.sqs.send_message(
                 QueueUrl=QUEUE_URL,
                 MessageBody=message
@@ -188,9 +202,9 @@ class WebScraper:
         # If so: create a recursive call to crawl the url
         for link in soup.find_all('a', href=True):
             href = link['href']
-            full_url = urljoin(self.rootUrl, href)
+            full_url = urljoin(self.org.url, href)
 
-            if full_url.startswith(self.rootUrl) and full_url not in visited:
+            if full_url.startswith(self.org.url) and full_url not in visited:
                 await self.crawlSite(full_url, visited)
         
         return visited
@@ -232,7 +246,7 @@ class WebScraper:
     
 
     async def crawlMultiEventPage(self):
-        url = self.rootUrl
+        url = self.org.url
 
         soup = await self.getSoup(url)
         if soup is None:
@@ -315,4 +329,7 @@ class WebScraper:
     async def close(self):
         """Close the browser when done."""
         await self.driver.close()
+        # sql = "INSERT INTO updates VALUES (%s, %s);"
+        # self.cur.execute(sql, (self.org.id, "DONE",))
+        # self.conn.commit()
         self.logger.info("Closed Driver - Scraper")
