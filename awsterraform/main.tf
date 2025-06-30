@@ -50,6 +50,7 @@ module "s3" {
   bucket_name = var.bucket_name
 }
 
+/*
 module "lambda_function" {
   source = "./lambda"
 
@@ -68,6 +69,7 @@ module "lambda_function" {
     DB_PASS       = var.db_password
   }
 }
+*/
 
 module "cognito" {
   source         = "./cognito"
