@@ -83,6 +83,7 @@ module "queue" {
 # we are handling variables in modules now each module will just call source for simplicity sake. 
 /*
 module "model" {
+module "model" {
   source        = "./model"
 }
 
