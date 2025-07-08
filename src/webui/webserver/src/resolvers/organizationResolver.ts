@@ -33,7 +33,7 @@ export const OrganizationResolver = {
       args: { csv: string, mode?: string }) => {
       console.log("begin parse")
       const params = {
-          TopicArn: process.env.SNS_TOPIC_ARN, // e.g. 'arn:aws:sns:us-east-1:123456789012:MyTopic'
+          TargetArn: process.env.SNS_TOPIC_ARN, // e.g. 'arn:aws:sns:us-east-1:123456789012:MyTopic'
           Message: JSON.stringify((await getOrganizations()).map((item) => item.id)),
         };
 
