@@ -37,6 +37,7 @@ export interface CsvOrganizationRow {
 }
 
 export function parseCSVForOrganizations(csv: string): CsvOrganizationRow[] {
+  console.log("CSV: \n" + csv)
   const lines = csv.split("\n").map(line => line.trim()).filter(line => line);
   const headers = [
     "CMS ID",
@@ -48,6 +49,8 @@ export function parseCSVForOrganizations(csv: string): CsvOrganizationRow[] {
     "KOAURL",
     "Primary Market"
   ];
+
+  console.log("Lines: \n" + lines)
 
   return lines.slice(1).map(line => {
     const values = line.split(",");
@@ -72,11 +75,13 @@ interface PartialOrganizationsRow {
   region?: string;
 }
 
-async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], onNewRegion: "add" | "leaveNull") {
+async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], onNewRegion: "add" | "leaveNull"): Promise<PartialOrganizationsRow[]> {
   var partials: PartialOrganizationsRow[] = [];
 
   return await getRegions().then((regions) => {
     var newRegions: string[] = [];
+
+    console.log("parse")
 
     csvOrgs.forEach(async (org) => {
       //If add mode and location info exists
@@ -104,7 +109,7 @@ async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], 
         partials.push({ cms_id: org.cmsId, name: org.accountName, org_url: org.website, koa_url: org.koaUrl });
       }
     });
-    //console.log(`! ${partials}`)
+    console.log(`partials: \n${partials}`)
   }).then(() => {
     //Wait until the above is completely done before returning
     //console.log(`2 ${partials}`)
@@ -114,5 +119,6 @@ async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], 
 
 
 export async function insertCsvOrganizations(organizations: CsvOrganizationRow[]) {
+  console.log("insert")
   await knex("organizations").insert(await convertCsvOrganizationsToPartials(organizations, "add"));
 }
