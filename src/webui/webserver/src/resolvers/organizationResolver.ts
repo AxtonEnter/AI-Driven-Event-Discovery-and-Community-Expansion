@@ -37,15 +37,16 @@ export const OrganizationResolver = {
         MessageBody: JSON.stringify((await getOrganizations()).map((item) => item.id)),
       });
 
-      try {
-        const response = await sqsClient.send(command);
-        console.log("Message sent successfully:", response.MessageId);
-      } catch (error) {
-        console.error("Error sending message:", error);
-      }
-      // return await insertCsvOrganizations(parseCSVForOrganizations(args.csv)).then(async () => {
+      return await insertCsvOrganizations(parseCSVForOrganizations(args.csv)).then(async () => {
+        try {
+          const response = await sqsClient.send(command);
+          console.log("Message sent successfully:", response.MessageId);
+        } catch (error) {
+          console.error("Error sending message:", error);
+        }
+      });
 
-      // });
+      
     }
   }
 }
