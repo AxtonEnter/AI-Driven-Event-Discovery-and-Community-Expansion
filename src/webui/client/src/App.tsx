@@ -6,7 +6,7 @@ import { theme } from './Theme.js';
 
 function App() {
   const apolloClient = new ApolloClient({
-    uri: process.env.REACT_APP_GRAPHQL_URL ?? "https://localhost:3000/graphql",
+    uri: process.env.REACT_APP_GRAPHQL_URL ?? "http://webui.us-east-2.elasticbeanstalk.com/graphql",
     credentials: "include",
     cache: new InMemoryCache(),
   });
