@@ -1,9 +1,9 @@
-import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
+import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import { OrganizationsRow } from "../db/tables.js";
 import { getOrganizationByID, getOrganizations, insertCsvOrganizations, parseCSVForOrganizations } from "../repositories/organizationRepo.js";
 import { getRegionByName } from "../repositories/regionRepo.js";
 
-const sns = new SNSClient({ region: "us-east-1" }); // replace with your region
+const sqsClient = new SQSClient({ region: "us-east-1" }); // replace with your region
 
 export const OrganizationResolver = {
   Organization: {
@@ -32,19 +32,19 @@ export const OrganizationResolver = {
       _parent: any,
       args: { csv: string, mode?: string }) => {
       console.log("begin parse")
-      const params = {
-          TargetArn: process.env.SNS_TOPIC_ARN, // e.g. 'arn:aws:sns:us-east-1:123456789012:MyTopic'
-          Message: JSON.stringify((await getOrganizations()).map((item) => item.id)),
-        };
+      const command = new SendMessageCommand({
+        QueueUrl: process.env.SQS_URL,
+        MessageBody: JSON.stringify((await getOrganizations()).map((item) => item.id)),
+      });
 
-        try {
-          const command = new PublishCommand(params);
-          const data = await sns.send(command);
-        } catch (error: any) {
-          console.log(error);
-        }
+      try {
+        const response = await sqsClient.send(command);
+        console.log("Message sent successfully:", response.MessageId);
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
       // return await insertCsvOrganizations(parseCSVForOrganizations(args.csv)).then(async () => {
-        
+
       // });
     }
   }

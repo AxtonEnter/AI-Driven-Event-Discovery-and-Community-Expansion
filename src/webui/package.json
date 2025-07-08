@@ -17,6 +17,7 @@
     "@apollo/server": "^4.3.3",
     "@as-integrations/express5": "^1.0.0",
     "@aws-sdk/client-sns": "^3.839.0",
+    "@aws-sdk/client-sqs": "^3.840.0",
     "@emotion/react": "^11.14.0",
     "@types/compression": "^1.7.5",
     "@types/express": "^5.0.1",
