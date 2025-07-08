@@ -150,10 +150,12 @@ async function startServer() {
 
   console.log("dir: " + path.join(__dirname, '/client/dist'));
 
-  httpServer.listen({ port: PORT }, (): void =>
+  httpServer.listen({ port: PORT }, (): void => {
     console.log(
-      `🚀 GraphQL-Server is running on https://localhost:${PORT}/graphql`
+      `🚀 GraphQL-Server is running on ${process.env.REACT_APP_GRAPHQL_URL}`
     )
+    console.log(process.env)
+  }
   );
 }
 
