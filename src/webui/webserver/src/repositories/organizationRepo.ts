@@ -37,7 +37,7 @@ export interface CsvOrganizationRow {
 }
 
 export function parseCSVForOrganizations(csv: string): CsvOrganizationRow[] {
-  console.log("CSV: \n" + csv)
+  //console.log("CSV: \n" + csv)
   const lines = csv.split("\n").map(line => line.trim()).filter(line => line);
   const headers = [
     "CMS ID",
@@ -50,7 +50,7 @@ export function parseCSVForOrganizations(csv: string): CsvOrganizationRow[] {
     "Primary Market"
   ];
 
-  console.log("Lines: \n" + lines)
+  //console.log("Lines: \n" + lines)
 
   return lines.slice(1).map(line => {
     const values = line.split(",");
@@ -109,7 +109,7 @@ async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], 
         partials.push({ cms_id: org.cmsId, name: org.accountName, org_url: org.website, koa_url: org.koaUrl });
       }
     });
-    console.log(`partials: \n${partials}`)
+    //console.log(`partials: \n${partials}`)
   }).then(() => {
     //Wait until the above is completely done before returning
     //console.log(`2 ${partials}`)

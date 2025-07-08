@@ -31,13 +31,13 @@ export const OrganizationResolver = {
     importOrganizations: async (
       _parent: any,
       args: { csv: string, mode?: string }) => {
-      console.log("begin parse")
-      const command = new SendMessageCommand({
-        QueueUrl: process.env.SQS_URL,
-        MessageBody: JSON.stringify((await getOrganizations()).map((item) => item.id)),
-      });
-
+      console.log("begin parse");
       return await insertCsvOrganizations(parseCSVForOrganizations(args.csv)).then(async () => {
+        const command = new SendMessageCommand({
+          QueueUrl: process.env.SQS_URL,
+          MessageBody: JSON.stringify((await getOrganizations()).map((item) => item.id)),
+        });
+
         try {
           const response = await sqsClient.send(command);
           console.log("Message sent successfully:", response.MessageId);
@@ -46,7 +46,7 @@ export const OrganizationResolver = {
         }
       });
 
-      
+
     }
   }
 }
