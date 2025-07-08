@@ -44,7 +44,7 @@ const __dirname = path.resolve(path.dirname(''))
  * Initialize the server runner
  */
 async function startServer() {
-  if (!process.env.NODE_ENV) process.loadEnvFile(__dirname + "/.env");
+  //if (!process.env.NODE_ENV) process.loadEnvFile(__dirname + "/.env");
 
   //Init with Node Express
   const app = express();
