@@ -7,7 +7,7 @@ import { theme } from './Theme.js';
 function App() {
   const apolloClient = new ApolloClient({
     uri: process.env.REACT_APP_GRAPHQL_URL ?? "https://koaevents.us-east-1.elasticbeanstalk.com/graphql",
-    credentials: "include",
+    //credentials: "include",
     cache: new InMemoryCache(),
   });
 

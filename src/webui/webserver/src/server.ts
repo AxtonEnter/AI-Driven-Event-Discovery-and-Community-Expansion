@@ -28,7 +28,7 @@ const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollogra
  */
 const CORS_CONFIG = {
   origin: process.env.REACT_APP_ORIGIN,
-  credentials: true,
+  //credentials: true,
 };
 
 // Load SSL certificates
