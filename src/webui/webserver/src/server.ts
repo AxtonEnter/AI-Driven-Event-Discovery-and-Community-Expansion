@@ -20,6 +20,61 @@ import https from "https"
 import { expressMiddleware } from "@as-integrations/express5";
 import { ApolloContext } from "./context.js";
 import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
+import jwt from "jsonwebtoken";
+import jwksClient from "jwks-rsa";
+
+// AWS Cognito config (set these in your environment)
+const COGNITO_REGION = process.env.COGNITO_REGION;
+const COGNITO_USER_POOL_ID = process.env.COGNITO_USER_POOL_ID;
+const COGNITO_CLIENT_ID = process.env.COGNITO_CLIENT_ID;
+const COGNITO_DOMAIN = process.env.COGNITO_DOMAIN; // e.g. https://your-domain.auth.us-east-1.amazoncognito.com
+
+// JWKS client for Cognito
+const jwks = jwksClient({
+  jwksUri: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}/.well-known/jwks.json`,
+});
+
+function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: string) => void) {
+  jwks.getSigningKey(header.kid, function (err: Error | null, key: any) {
+    if (err) {
+      callback(err);
+    } else {
+      const signingKey = key.getPublicKey();
+      callback(null, signingKey);
+    }
+  });
+}
+
+// Middleware to require Cognito login
+import { Request, Response, NextFunction } from "express";
+function requireCognitoLogin(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers["authorization"] || req.cookies?.id_token;
+  let token: string | null = null;
+  if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+    token = authHeader.replace("Bearer ", "");
+  } else if (typeof authHeader === "string") {
+    token = authHeader;
+  }
+  if (!token) {
+    // Redirect to Cognito Hosted UI
+    const redirectUri = encodeURIComponent(`${req.protocol}://${req.get("host")}${req.originalUrl}`);
+    return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=token&scope=openid+profile+email&redirect_uri=${redirectUri}`);
+  }
+  jwt.verify(token, getKey, {
+    audience: COGNITO_CLIENT_ID,
+    issuer: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}`,
+    algorithms: ["RS256"],
+  }, (err: any, decoded: any) => {
+    if (err) {
+      // Invalid token, redirect to login
+      const redirectUri = encodeURIComponent(`${req.protocol}://${req.get("host")}${req.originalUrl}`);
+      return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=token&scope=openid+profile+email&redirect_uri=${redirectUri}`);
+    }
+    // Attach user info to request
+    (req as any).user = decoded;
+    next();
+  });
+}
 
 const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollographql.com"];
 
@@ -75,52 +130,42 @@ async function startServer() {
     // view engine setup
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'ejs');
-
-
     setupDevAuth(app);
   }
-
   /**
    * mode: PRODUCTION
-   * Use production SAML settings. Full security
+   * Require AWS Cognito authentication for all /app routes
    */
   else if (process.env.NODE_ENV === "production") {
-    throw Error("Unimplemented");
+    // Require Cognito login for all /app and /assets routes
+    app.use(["/app", "/assets"], requireCognitoLogin);
   }
-
   else {
     process.exit(-1);
   }
 
-  app.use("/app", express.static(path.join(__dirname, "client/npx browserslist@latest --update-db\n")));
-
   //serves built react app files under root/app
   app.use("/app/", express.static(path.join(__dirname, '/client/dist')));
-
   app.use('/assets', express.static(path.join(__dirname, '/client/dist/assets')))
 
   //verifies user logged in under all front-end urls and if not send to login
-  app.all("/app/hello", (req, res, next) => {
+  app.all("/app/hello", (req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.log("Hello World!")
     //Redirect to login
-
   });
-
 
   //it might seem like you should be able to redirect straight to /app/ from / but for some reason it infitely refreshes
   // and this solves the issue
-  app.get("/app/home", function (req, res) {
+  app.get("/app/home", function (req: express.Request, res: express.Response) {
     res.redirect("/app/")
   })
 
-
   //redirects first landing make.rit.edu/ -> make.rit.edu/home
-  app.get("/", function (req, res) {
+  app.get("/", function (req: express.Request, res: express.Response) {
     res.redirect("/app/home");
   });
 
-
-  app.get("/app/", function (req, res) {
+  app.get("/app/", function (req: express.Request, res: express.Response) {
     res.header
     res.sendFile(path.join(__dirname, "/client/dist", "index.html"));
   });
