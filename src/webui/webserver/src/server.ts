@@ -69,11 +69,13 @@ function requireCognitoLogin(req: any, res: any, next: any) {
   }, (err: any, decoded: any) => {
     if (err) {
       // Invalid token, redirect to login
+      console.log("JWT verification error: ", err);
       const redirectUri = encodeURIComponent(`${req.protocol}://${req.get("host")}${req.originalUrl}`);
       return res.redirect(`${COGNITO_DOMAIN}login?client_id=${COGNITO_CLIENT_ID}&response_type=token&scope=openid+profile+email&redirect_uri=${redirectUri}`);
     }
     // Attach user info to request
     (req as any).user = decoded;
+    console.log("User authenticated: ", decoded);
     next();
   });
 }
