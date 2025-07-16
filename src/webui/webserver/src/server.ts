@@ -70,7 +70,7 @@ function requireCognitoLogin(req: any, res: any, next: any) {
     if (err) {
       // Invalid token, redirect to login
       const redirectUri = encodeURIComponent(`${req.protocol}://${req.get("host")}${req.originalUrl}`);
-      return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=token&scope=openid+profile+email&redirect_uri=${redirectUri}`);
+      return res.redirect(`${COGNITO_DOMAIN}login?client_id=${COGNITO_CLIENT_ID}&response_type=token&scope=openid+profile+email&redirect_uri=${redirectUri}`);
     }
     // Attach user info to request
     (req as any).user = decoded;
