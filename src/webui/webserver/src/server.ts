@@ -48,7 +48,7 @@ function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: strin
 }
 
 // Middleware to require Cognito login
-function requireCognitoLogin(req: Request, res: Response, next: NextFunction) {
+function requireCognitoLogin(req: any, res: any, next: any) {
   const authHeader = req.headers["authorization"] || req.cookies?.id_token;
   let token: string | null = null;
   if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
