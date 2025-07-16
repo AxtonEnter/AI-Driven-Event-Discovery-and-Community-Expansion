@@ -1,3 +1,3 @@
-output "instance_ip_addr" {
-  value = aws_instance.my_server[*].private_ip
+output "public_dns" {
+  value = aws_instance.web_scraper_server.public_dns
 }

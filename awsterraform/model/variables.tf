@@ -8,3 +8,9 @@ variable "key_name" {
     type = string
     default = "EventDiscovery" #keyname here
 }
+
+
+variable "model_ami" {
+    description = "The ami id of the snapshot that the model server will be made from."
+    type = string
+}

@@ -11,6 +11,15 @@ provider "aws" {
     region = "us-east-1"
 }
 
+module "model" {
+  source        = "./model"
+  model_ami = var.model_ami
+}
+
+module "webscraper" {
+  source = "./webscraper"
+  webscraper_ami = var.webscraper_ami
+}
 
 
 # we are handling variables in modules now each module will just call source for simplicity sake. 
@@ -18,9 +27,7 @@ provider "aws" {
 module "queue" {
   source = "./queue"
 }
-module "model" {
-  source        = "./model"
-}
+
 
 module "lambda_function" {
  source = "./lambda"
@@ -71,14 +78,6 @@ module "lambda_function" {
   }
 }
 */
-
-provider "aws" {
-    region = "us-east-1"
-}
-
-module "queue" {
-  source = "./queue"
-}
 
 # we are handling variables in modules now each module will just call source for simplicity sake. 
 /*
