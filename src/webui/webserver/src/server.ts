@@ -22,6 +22,8 @@ import { ApolloContext } from "./context.js";
 import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
+import { Request, Response, NextFunction } from "express";
+
 
 // AWS Cognito config (set these in your environment)
 const COGNITO_REGION = process.env.COGNITO_REGION;
@@ -46,7 +48,6 @@ function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: strin
 }
 
 // Middleware to require Cognito login
-import { Request, Response, NextFunction } from "express";
 function requireCognitoLogin(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers["authorization"] || req.cookies?.id_token;
   let token: string | null = null;
