@@ -50,11 +50,13 @@ function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: strin
 function requireCognitoLogin(req: any, res: any, next: any) {
   const authHeader = req.headers["authorization"] || req.cookies?.id_token;
   let token: string | null = null;
+  console.log("Auth Header: ", authHeader);
   if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
     //token = authHeader.replace("Bearer ", "");
   } else if (typeof authHeader === "string") {
     token = "Bearer " + authHeader;
   }
+  console.log("Token: ", token);
   if (!token) {
     // Redirect to Cognito Hosted UI
     const redirectUri = encodeURIComponent(`${req.protocol}://${req.get("host")}${req.originalUrl}`);
