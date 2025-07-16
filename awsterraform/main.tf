@@ -157,7 +157,7 @@ module "cognito" {
   source         = "./cognito"
   user_pool_name = "my-user-pool"
   client_name    = "my-client"
-  callback_urls = ["http://localhost:3000/callback"]
-  logout_urls   = ["http://localhost:3000/"]
+  callback_urls = https://awseb--awseb-qtfstuhvgp4v-1642944154.us-east-1.elb.amazonaws.com/login
+  logout_urls   = https://awseb--awseb-qtfstuhvgp4v-1642944154.us-east-1.elb.amazonaws.com/logout
 }
 */
