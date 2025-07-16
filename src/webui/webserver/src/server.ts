@@ -14,12 +14,11 @@ import bodyParser from "body-parser"; //JSON request body parser
 import process from "process";
 import compression from "compression";
 import { schema } from "./schema.js";
-import { setupDevAuth, setupSessions } from "./auth.js";
+import { setupSessions } from "./auth.js";
 import fs from "fs"
 import https from "https"
 import { expressMiddleware } from "@as-integrations/express5";
 import { ApolloContext } from "./context.js";
-import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { Request, Response, NextFunction } from "express";
@@ -131,7 +130,7 @@ async function startServer() {
     // view engine setup
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'ejs');
-    setupDevAuth(app);
+    //setupDevAuth(app);
   }
   /**
    * mode: PRODUCTION
