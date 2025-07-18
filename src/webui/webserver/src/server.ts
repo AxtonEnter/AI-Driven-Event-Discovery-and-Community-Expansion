@@ -59,7 +59,7 @@ function requireCognitoLogin(req: any, res: any, next: any) {
   console.log("Token: ", token);
   if (!token) {
     // Redirect to Cognito Hosted UI
-    const redirectUri = encodeURIComponent(`${req.protocol}://${req.get("host")}${req.originalUrl}`);
+    const redirectUri = encodeURIComponent(process.env.REACT_APP_URL || `${req.protocol}://${req.get("host")}${req.originalUrl}`);
     return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=token&scope=openid+profile+email&redirect_uri=${redirectUri}`);
   }
   jwt.verify(token, getKey, {
