@@ -24,6 +24,27 @@ import jwksClient from "jwks-rsa";
 import { Request, Response, NextFunction } from "express";
 import axios from "axios";
 import qs from "querystring";
+import cookieParser from "cookie-parser";
+
+const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollographql.com"];
+
+/**
+ * set up Cross-Origin Request allowances
+ */
+const CORS_CONFIG = {
+  origin: process.env.REACT_APP_ORIGIN,
+  //credentials: true,
+};
+
+// Load SSL certificates
+// const credentials = {
+//   key: fs.readFileSync("./cert/private-key.pem"),
+//   cert: fs.readFileSync("./cert/certificate.pem"),
+// };
+
+
+const __dirname = path.resolve(path.dirname(''))
+
 
 
 // AWS Cognito config (set these in your environment)
@@ -50,7 +71,7 @@ function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: strin
 
 // Middleware to require Cognito login
 async function requireCognitoLogin(req: any, res: any, next: any) {
-  console.log(req.cookies);
+  console.log("req: ", req);
 
   const token = req.cookies?.id_token;
 
@@ -84,7 +105,12 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
       );
 
       const idToken = tokenResponse.data.id_token;
-      res.cookie("id_token", idToken, { path: "/" });
+      res.cookie("id_token", idToken, {
+        path: "/",
+        httpOnly: false, // if you need to access it via JS
+        secure: true,   // set to true only if using HTTPS
+        sameSite: "None", // or "None" if cross-site
+      });
       console.log(`Token exchange successful (${idToken}), redirecting...`);
       return res.redirect(req.originalUrl.split("?")[0]); // Strip code param
     } catch (err: any) {
@@ -97,24 +123,6 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
   return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
 }
 
-const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollographql.com"];
-
-/**
- * set up Cross-Origin Request allowances
- */
-const CORS_CONFIG = {
-  origin: process.env.REACT_APP_ORIGIN,
-  //credentials: true,
-};
-
-// Load SSL certificates
-// const credentials = {
-//   key: fs.readFileSync("./cert/private-key.pem"),
-//   cert: fs.readFileSync("./cert/certificate.pem"),
-// };
-
-
-const __dirname = path.resolve(path.dirname(''))
 
 /**
  * Initialize the server runner
@@ -127,6 +135,9 @@ async function startServer() {
 
   //Configure CORS
   app.use(cors());
+
+  //Parse cookies
+  app.use(cookieParser());
 
   //Active File compression 
   app.use(compression());
