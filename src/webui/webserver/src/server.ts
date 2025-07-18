@@ -52,7 +52,7 @@ function requireCognitoLogin(req: any, res: any, next: any) {
   let token: string | null = null;
   console.log("Auth Header: ", authHeader);
   if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
-    //token = authHeader.replace("Bearer ", "");
+    token = authHeader.replace("Bearer ", "");
   } else if (typeof authHeader === "string") {
     token = "Bearer " + authHeader;
   }
@@ -60,7 +60,7 @@ function requireCognitoLogin(req: any, res: any, next: any) {
   if (!token) {
     // Redirect to Cognito Hosted UI
     const redirectUri = encodeURIComponent(process.env.REACT_APP_URL || `${req.protocol}://${req.get("host")}${req.originalUrl}`);
-    return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=token&scope=openid+profile+email&redirect_uri=${redirectUri}`);
+    return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
   }
   jwt.verify(token, getKey, {
     audience: COGNITO_CLIENT_ID,
