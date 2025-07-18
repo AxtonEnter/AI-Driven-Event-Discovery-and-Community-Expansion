@@ -80,13 +80,19 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
   if (token) {
     console.log(`Verifying JWT token ${token}...`);
     try {
-      const decoded = jwt.verify(token, getKey, {
+      return jwt.verify(token, getKey, {
         audience: COGNITO_CLIENT_ID,
         issuer: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}`,
         algorithms: ["RS256"],
+      }, (err, decoded) => {
+        if (err) {
+          console.error("JWT verification error:", err);
+          return res.status(401).send("Unauthorized");
+        }
+        req.user = decoded;
+        return next();
       });
-      req.user = decoded;
-      return next();
+
     } catch (err) {
       console.log("JWT verification error:", err);
     }
