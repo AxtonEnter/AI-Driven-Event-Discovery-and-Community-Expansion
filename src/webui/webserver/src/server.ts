@@ -71,9 +71,9 @@ function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: strin
 
 // Middleware to require Cognito login
 async function requireCognitoLogin(req: any, res: any, next: any) {
-  console.log("req: ", req);
+  //console.log("req: ", req);
 
-  const token = req.cookies?.id_token;
+  const token = req.cookie?.id_token;
 
   if (token) {
     console.log(`Verifying JWT token ${token}...`);
