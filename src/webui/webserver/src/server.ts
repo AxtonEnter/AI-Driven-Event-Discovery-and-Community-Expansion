@@ -75,7 +75,7 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
           grant_type: "authorization_code",
           client_id: COGNITO_CLIENT_ID,
           code,
-          redirect_uri: `${req.protocol}://${req.get("host")}${req.originalUrl.split("?")[0]}`,
+          redirect_uri: process.env.REACT_APP_URL ?? `${req.protocol}://${req.get("host")}/app/`,
         }),
         { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
