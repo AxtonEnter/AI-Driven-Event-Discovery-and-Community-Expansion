@@ -71,7 +71,7 @@ function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: strin
 
 // Middleware to require Cognito login
 async function requireCognitoLogin(req: any, res: any, next: any) {
-  //console.log("req: ", req);
+  console.log("req: ", req.cookie);
 
   const token = req.cookie?.id_token;
 
@@ -111,7 +111,7 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
         secure: true,   // set to true only if using HTTPS
         sameSite: "None", // or "None" if cross-site
       });
-      console.log(`Token exchange successful (${idToken}), redirecting...`);
+      console.log(`Token exchange successful, redirecting...`);
       return res.redirect(req.originalUrl.split("?")[0]); // Strip code param
     } catch (err: any) {
       console.log("Token exchange error:", err.response?.data || err.message);
