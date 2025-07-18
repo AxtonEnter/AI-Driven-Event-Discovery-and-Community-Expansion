@@ -53,6 +53,7 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
   const token = req.cookies?.id_token;
 
   if (token) {
+    console.log(`Verifying JWT token ${token}...`);
     try {
       const decoded = jwt.verify(token, getKey, {
         audience: COGNITO_CLIENT_ID,
@@ -82,10 +83,12 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
 
       const idToken = tokenResponse.data.id_token;
       res.cookie("id_token", idToken, { path: "/" });
+      console.log(`Token exchange successful (${idToken}), redirecting...`);
       return res.redirect(req.originalUrl.split("?")[0]); // Strip code param
     } catch (err: any) {
       console.log("Token exchange error:", err.response?.data || err.message);
     }
+
   }
 
   const redirectUri = encodeURIComponent(process.env.REACT_APP_URL ?? `${req.protocol}://${req.get("host")}/app/`);
