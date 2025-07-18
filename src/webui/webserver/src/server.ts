@@ -22,6 +22,8 @@ import { ApolloContext } from "./context.js";
 import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { Request, Response, NextFunction } from "express";
+import axios from "axios";
+import qs from "querystring";
 
 
 // AWS Cognito config (set these in your environment)
@@ -47,37 +49,47 @@ function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: strin
 }
 
 // Middleware to require Cognito login
-function requireCognitoLogin(req: any, res: any, next: any) {
-  const authHeader = req.headers["authorization"] || req.cookies?.id_token;
-  let token: string | null = null;
-  console.log("Auth Header: ", authHeader);
-  if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
-    token = authHeader.replace("Bearer ", "");
-  } else if (typeof authHeader === "string") {
-    token = "Bearer " + authHeader;
-  }
-  console.log("Token: ", token);
-  if (!token) {
-    // Redirect to Cognito Hosted UI
-    const redirectUri = encodeURIComponent(process.env.REACT_APP_URL || `${req.protocol}://${req.get("host")}${req.originalUrl}`);
-    return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
-  }
-  jwt.verify(token, getKey, {
-    audience: COGNITO_CLIENT_ID,
-    issuer: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}`,
-    algorithms: ["RS256"],
-  }, (err: any, decoded: any) => {
-    if (err) {
-      // Invalid token, redirect to login
-      console.log("JWT verification error: ", err);
-      const redirectUri = encodeURIComponent(`${req.protocol}://${req.get("host")}${req.originalUrl}`);
-      return res.redirect(`${COGNITO_DOMAIN}login?client_id=${COGNITO_CLIENT_ID}&response_type=token&scope=openid+profile+email&redirect_uri=${redirectUri}`);
+async function requireCognitoLogin(req: any, res: any, next: any) {
+  const token = req.cookies?.id_token;
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, getKey, {
+        audience: COGNITO_CLIENT_ID,
+        issuer: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}`,
+        algorithms: ["RS256"],
+      });
+      req.user = decoded;
+      return next();
+    } catch (err) {
+      console.log("JWT verification error:", err);
     }
-    // Attach user info to request
-    (req as any).user = decoded;
-    console.log("User authenticated: ", decoded);
-    next();
-  });
+  }
+
+  const code = req.query.code;
+  if (code) {
+    try {
+      const tokenResponse = await axios.post(
+        `${COGNITO_DOMAIN}/oauth2/token`,
+        qs.stringify({
+          grant_type: "authorization_code",
+          client_id: COGNITO_CLIENT_ID,
+          code,
+          redirect_uri: `${req.protocol}://${req.get("host")}${req.originalUrl.split("?")[0]}`,
+        }),
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      );
+
+      const idToken = tokenResponse.data.id_token;
+      res.cookie("id_token", idToken, { path: "/" });
+      return res.redirect(req.originalUrl.split("?")[0]); // Strip code param
+    } catch (err: any) {
+      console.log("Token exchange error:", err.response?.data || err.message);
+    }
+  }
+
+  const redirectUri = encodeURIComponent(`${req.protocol}://${req.get("host")}${req.originalUrl}`);
+  return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
 }
 
 const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollographql.com"];
