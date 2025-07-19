@@ -1,14 +1,26 @@
+export enum Role {
+  ADMIN = "admin",
+  ENTRANT = "entrant",
+  GUEST = "guest",
+}
+
+export interface CurrentUser {
+  id: number;
+  username: string;
+  role: string;
+}
+
 export interface ApolloContext {
-  //user: CurrentUser | undefined;
-  // logout: () => void;
-  // ifAllowed: (
-  //   allowedPrivileges: Privilege[],
-  //   callback: (user: CurrentUser) => any
-  // ) => any;
-  // ifAuthenticated: (callback: (user: CurrentUser) => any) => any;
+  user: CurrentUser | undefined;
+  logout: () => void;
+  ifAllowed: (
+    allowedRoles: Role[],
+    callback: (user: CurrentUser) => any
+  ) => any;
+  ifAuthenticated: (callback: (user: CurrentUser) => any) => any;
   // ifAllowedOrSelf: (
   //   targetedUserID: number,
-  //   allowedPrivileges: Privilege[],
+  //   allowedRoles: Role[],
   //   callback: (user: CurrentUser) => any
   // ) => any;
 }
