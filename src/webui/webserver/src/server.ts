@@ -14,7 +14,7 @@ import bodyParser from "body-parser"; //JSON request body parser
 import process from "process";
 import compression from "compression";
 import { schema } from "./schema.js";
-import { setupSessions } from "./auth.js";
+import { serializeUser, setupSessions } from "./auth.js";
 import fs from "fs"
 import https from "https"
 import { expressMiddleware } from "@as-integrations/express5";
@@ -25,7 +25,6 @@ import { Request, Response, NextFunction } from "express";
 import axios from "axios";
 import qs from "querystring";
 import cookieParser from "cookie-parser";
-import { serializeUser } from "passport";
 
 const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollographql.com"];
 
