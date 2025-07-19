@@ -88,8 +88,9 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
         algorithms: ["RS256"],
       }, (err, decoded) => {
         if (err) {
-          console.error("JWT verification error:", err);
-          return res.status(401).send("Unauthorized");
+          console.error("JWT verification error (Unauthorized):", err);
+          //return res.status(401).send("Unauthorized");
+          return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
         }
         req.user = decoded;
         console.log("JWT verified successfully: ", req.user);
