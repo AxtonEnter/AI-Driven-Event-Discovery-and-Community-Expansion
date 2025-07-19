@@ -77,6 +77,8 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
 
   const token = req.cookies?.id_token;
 
+  const redirectUri = encodeURIComponent(process.env.REACT_APP_URL ?? `${req.protocol}://${req.get("host")}/app/`);
+
   if (token) {
     console.log(`Verifying JWT token...`);
     try {
@@ -131,7 +133,6 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
 
   }
 
-  const redirectUri = encodeURIComponent(process.env.REACT_APP_URL ?? `${req.protocol}://${req.get("host")}/app/`);
   return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
 }
 
