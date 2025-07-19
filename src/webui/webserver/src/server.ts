@@ -100,7 +100,7 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
 
     } catch (err) {
       console.log("JWT verification error:", err);
-      res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
+      return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
     }
   }
 
