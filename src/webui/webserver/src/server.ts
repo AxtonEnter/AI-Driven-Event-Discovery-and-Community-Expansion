@@ -100,9 +100,10 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
 
     } catch (err) {
       console.log("JWT verification error:", err);
-      return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
     }
   }
+
+  console.log("No token found, trying code...\nCode=", req.query.code);
 
   const code = req.query.code;
   if (code) {
@@ -132,6 +133,8 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
     }
 
   }
+
+  console.log("No code found, redirecting to Cognito login...");
 
   return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
 }
