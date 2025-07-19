@@ -1,6 +1,6 @@
 import { createContext, ReactElement, useContext } from "react";
 import { gql, useQuery } from "@apollo/client";
-import { useLocation } from "react-router";
+//import { useLocation } from "react-router";
 import RequestWrapper2 from "./RequestWrapper2";
 
 //const loginUrl = process.env.REACT_APP_LOGIN_URL ?? "/";
