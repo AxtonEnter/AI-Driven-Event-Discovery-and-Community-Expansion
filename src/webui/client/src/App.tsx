@@ -1,8 +1,9 @@
 import './App.css'
-import { CssBaseline, ThemeProvider } from '@mui/material'
+import { ThemeProvider } from '@mui/material'
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 import AppRoutes from './routes.js';
 import { theme } from './Theme.js';
+import { CurrentUserProvider } from './common/CurrentUserProvider.js';
 
 function App() {
   const apolloClient = new ApolloClient({
@@ -14,8 +15,10 @@ function App() {
   return (
     <ApolloProvider client={apolloClient}>
       <ThemeProvider theme={theme}>
-        <CssBaseline/>
+        <CurrentUserProvider>
+          {/* <CssBaseline/> */}
           <AppRoutes />
+        </CurrentUserProvider>
       </ThemeProvider>
     </ApolloProvider>
   )
