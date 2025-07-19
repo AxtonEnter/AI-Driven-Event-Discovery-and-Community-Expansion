@@ -71,14 +71,14 @@ function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: strin
 
 // Middleware to require Cognito login
 async function requireCognitoLogin(req: any, res: any, next: any) {
-  console.log("req: ", req);
-  console.log("req.cookies: ", req.cookies);
+  // console.log("req: ", req);
+  // console.log("req.cookies: ", req.cookies);
 
 
   const token = req.cookies?.id_token;
 
   if (token) {
-    console.log(`Verifying JWT token ${token}...`);
+    console.log(`Verifying JWT token...`);
     try {
       return jwt.verify(token, getKey, {
         audience: COGNITO_CLIENT_ID,
@@ -90,7 +90,7 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
           return res.status(401).send("Unauthorized");
         }
         req.user = decoded;
-        console.log("JWT verified successfully:", req.user);
+        console.log("JWT verified successfully: ", req.user);
 
         req.user = serializeUser(req.user);
         return next();
@@ -98,6 +98,7 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
 
     } catch (err) {
       console.log("JWT verification error:", err);
+      res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
     }
   }
 
