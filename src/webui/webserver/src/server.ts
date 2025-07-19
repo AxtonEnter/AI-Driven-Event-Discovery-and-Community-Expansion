@@ -90,6 +90,8 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
         if (err) {
           console.error("JWT verification error (Unauthorized):", err);
           //return res.status(401).send("Unauthorized");
+          res.clearCookie("id_token");
+
           return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
         }
         req.user = decoded;
@@ -101,6 +103,7 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
 
     } catch (err) {
       console.log("JWT verification error:", err);
+      res.clearCookie("id_token");
     }
   }
 
@@ -108,6 +111,9 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
 
   const code = req.query.code;
   if (code) {
+
+    res.clearCookie("id_token");
+    
     try {
       const tokenResponse = await axios.post(
         `${COGNITO_DOMAIN}/oauth2/token`,
