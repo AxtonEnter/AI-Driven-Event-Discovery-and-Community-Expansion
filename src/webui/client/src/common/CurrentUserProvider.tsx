@@ -3,7 +3,7 @@ import { gql, useQuery } from "@apollo/client";
 import { useLocation } from "react-router";
 import RequestWrapper2 from "./RequestWrapper2";
 
-const loginUrl = process.env.REACT_APP_LOGIN_URL ?? "/";
+//const loginUrl = process.env.REACT_APP_LOGIN_URL ?? "/";
 
 export const GET_CURRENT_USER = gql`
   query GetCurrentUser {
@@ -34,7 +34,7 @@ interface CurrentUserProviderProps {
 
 export function CurrentUserProvider({ children }: CurrentUserProviderProps) {
   const result = useQuery(GET_CURRENT_USER);
-  const location = useLocation();
+  //const location = useLocation();
 
   // If the current user is null, redirect to SSO login
   // if (
