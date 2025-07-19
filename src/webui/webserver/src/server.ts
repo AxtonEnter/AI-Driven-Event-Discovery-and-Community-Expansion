@@ -25,6 +25,7 @@ import { Request, Response, NextFunction } from "express";
 import axios from "axios";
 import qs from "querystring";
 import cookieParser from "cookie-parser";
+import { serializeUser } from "passport";
 
 const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollographql.com"];
 
@@ -91,6 +92,8 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
         }
         req.user = decoded;
         console.log("JWT verified successfully:", req.user);
+
+        req.user = serializeUser(req.user);
         return next();
       });
 
