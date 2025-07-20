@@ -86,7 +86,7 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
         audience: COGNITO_CLIENT_ID,
         issuer: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}`,
         algorithms: ["RS256"],
-      }, (err, decoded) => {
+      }, async (err, decoded) => {
         if (err) {
           console.error("JWT verification error (Unauthorized):", err);
           //return res.status(401).send("Unauthorized");
@@ -97,7 +97,7 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
         req.user = decoded;
         console.log("JWT verified successfully: ", req.user);
 
-        req.user = serializeUser(req.user);
+        req.user = await serializeUser(req.user);
         return next();
       });
 
@@ -113,7 +113,7 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
   if (code) {
 
     res.clearCookie("id_token");
-    
+
     try {
       const tokenResponse = await axios.post(
         `${COGNITO_DOMAIN}/oauth2/token`,
@@ -255,7 +255,7 @@ async function startServer() {
     console.log(
       `🚀 GraphQL-Server is running on ${process.env.REACT_APP_GRAPHQL_URL}`
     )
-    console.log(process.env)
+    //console.log(process.env)
   }
   );
 }

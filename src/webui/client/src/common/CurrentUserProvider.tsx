@@ -42,7 +42,7 @@ export function CurrentUserProvider({ children }: CurrentUserProviderProps) {
   //   !result.loading &&
   //   !result.data?.currentUser
   // ) {
-  //   window.location.replace(loginUrl);
+  //   window.location.replace("/login");
   //   return null;
   // }
 
