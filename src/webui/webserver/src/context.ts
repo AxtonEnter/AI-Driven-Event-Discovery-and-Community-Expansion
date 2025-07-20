@@ -5,7 +5,6 @@ export enum Role {
 }
 
 export interface CurrentUser {
-  id: number;
   username: string;
   role: string;
 }
@@ -24,3 +23,11 @@ export interface ApolloContext {
   //   callback: (user: CurrentUser) => any
   // ) => any;
 }
+
+
+const context = async ({ req }: { req: any }) => ({
+  user: req.user,
+  logout: () => req.logout(),
+});
+
+export default context;
