@@ -17,11 +17,6 @@ export interface ApolloContext {
     callback: (user: CurrentUser) => any
   ) => any;
   ifAuthenticated: (callback: (user: CurrentUser) => any) => any;
-  // ifAllowedOrSelf: (
-  //   targetedUserID: number,
-  //   allowedRoles: Role[],
-  //   callback: (user: CurrentUser) => any
-  // ) => any;
 }
 
 
