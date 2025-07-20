@@ -13,11 +13,12 @@ import { createUser, getUserByUsername } from "./repositories/userRepo.js";
 
 export async function serializeUser(decodedData: any) {
   if (decodedData?.cognito?.username) {
-    return await getUserByUsername(decodedData.cognito.username).then(async (user) => {
+    return await getUserByUsername(decodedData.email).then(async (user) => {
+      console.log("serializeUser: ", user);
       if (user) {
         return user;
       } else {
-        return await createUser(decodedData.cognito.username);
+        return await createUser(decodedData.email);
       }
     });
   }
