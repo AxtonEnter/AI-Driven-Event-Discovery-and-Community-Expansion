@@ -33,7 +33,7 @@ const allowed_origins = [process.env.REACT_APP_ORIGIN, "https://studio.apollogra
  */
 const CORS_CONFIG = {
   origin: process.env.REACT_APP_ORIGIN,
-  //credentials: true,
+  credentials: true,
 };
 
 // Load SSL certificates
@@ -58,98 +58,6 @@ const jwks = jwksClient({
   jwksUri: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}/.well-known/jwks.json`,
 });
 
-function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: string) => void) {
-  jwks.getSigningKey(header.kid, function (err: Error | null, key: any) {
-    if (err) {
-      callback(err);
-    } else {
-      const signingKey = key.getPublicKey();
-      callback(null, signingKey);
-    }
-  });
-}
-
-// Middleware to require Cognito login
-async function requireCognitoLogin(req: any, res: any, next: any) {
-  // console.log("req: ", req);
-  // console.log("req.cookies: ", req.cookies);
-
-
-  const token = req.cookies?.id_token;
-
-  const redirectUri = encodeURIComponent(process.env.REACT_APP_URL ?? `${req.protocol}://${req.get("host")}/app/`);
-
-  if (token) {
-    console.log(`Verifying JWT token...`);
-    try {
-      return jwt.verify(token, getKey, {
-        audience: COGNITO_CLIENT_ID,
-        issuer: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}`,
-        algorithms: ["RS256"],
-      }, async (err, decoded) => {
-        if (err) {
-          console.error("JWT verification error (Unauthorized):", err);
-          //return res.status(401).send("Unauthorized");
-          res.clearCookie("id_token");
-
-          return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
-        }
-        req.user = decoded;
-        console.log("JWT verified successfully: ", req.user);
-
-        return await serializeUser(req.user).then(async (user) => {
-          req.user = user;
-          console.log("User serialized: ", user);
-          console.log("context: ", await context({req}))
-          return next();
-        });
-
-      });
-
-    } catch (err) {
-      console.log("JWT verification error:", err);
-      res.clearCookie("id_token");
-    }
-  }
-
-  console.log("No token found, trying code...\nCode=", req.query.code);
-
-  const code = req.query.code;
-  if (code) {
-
-    res.clearCookie("id_token");
-
-    try {
-      const tokenResponse = await axios.post(
-        `${COGNITO_DOMAIN}/oauth2/token`,
-        qs.stringify({
-          grant_type: "authorization_code",
-          client_id: COGNITO_CLIENT_ID,
-          code,
-          redirect_uri: process.env.REACT_APP_URL ?? `${req.protocol}://${req.get("host")}/app/`,
-        }),
-        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-      );
-
-      const idToken = tokenResponse.data.id_token;
-      res.cookie("id_token", idToken, {
-        path: "/",
-        httpOnly: false, // if you need to access it via JS
-        secure: true,   // set to true only if using HTTPS
-        sameSite: "None", // or "None" if cross-site
-      });
-      console.log(`Token exchange successful, redirecting...`);
-      return res.redirect(req.originalUrl.split("?")[0]); // Strip code param
-    } catch (err: any) {
-      console.log("Token exchange error:", err.response?.data || err.message);
-    }
-
-  }
-
-  console.log("No code found, redirecting to Cognito login...");
-
-  return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
-}
 
 
 /**
@@ -178,6 +86,98 @@ async function startServer() {
 
   //Prepare client session handler
   setupSessions(app);
+
+  function getKey(header: jwt.JwtHeader, callback: (err: Error | null, key?: string) => void) {
+    jwks.getSigningKey(header.kid, function (err: Error | null, key: any) {
+      if (err) {
+        callback(err);
+      } else {
+        const signingKey = key.getPublicKey();
+        callback(null, signingKey);
+      }
+    });
+  }
+
+  // Middleware to require Cognito login
+  async function requireCognitoLogin(req: any, res: any, next: any) {
+    // console.log("req: ", req);
+    // console.log("req.cookies: ", req.cookies);
+
+
+    const token = req.cookies?.id_token;
+
+    const redirectUri = encodeURIComponent(process.env.REACT_APP_URL ?? `${req.protocol}://${req.get("host")}/app/`);
+
+    if (token) {
+      console.log(`Verifying JWT token...`);
+      try {
+        return jwt.verify(token, getKey, {
+          audience: COGNITO_CLIENT_ID,
+          issuer: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}`,
+          algorithms: ["RS256"],
+        }, async (err, decoded) => {
+          if (err) {
+            console.error("JWT verification error (Unauthorized):", err);
+            //return res.status(401).send("Unauthorized");
+            res.clearCookie("id_token");
+
+            return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
+          }
+          req.user = decoded;
+          console.log("JWT verified successfully: ", req.user);
+
+          return await serializeUser(req.user).then(async (user) => {
+            req.user = user;
+            console.log("User serialized: ", user);
+            console.log("context: ", await context({ req }))
+            return next();
+          });
+
+        });
+
+      } catch (err) {
+        console.log("JWT verification error:", err);
+      }
+    }
+
+    console.log("No token found, trying code...\nCode=", req.query.code);
+
+    const code = req.query.code;
+    if (code) {
+
+      //res.clearCookie("id_token");
+
+      try {
+        const tokenResponse = await axios.post(
+          `${COGNITO_DOMAIN}/oauth2/token`,
+          qs.stringify({
+            grant_type: "authorization_code",
+            client_id: COGNITO_CLIENT_ID,
+            code,
+            redirect_uri: process.env.REACT_APP_URL ?? `${req.protocol}://${req.get("host")}/app/`,
+          }),
+          { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+        );
+
+        const idToken = tokenResponse.data.id_token;
+        res.cookie("id_token", idToken, {
+          path: "/",
+          httpOnly: false, // if you need to access it via JS
+          secure: true,   // set to true only if using HTTPS
+          sameSite: "None", // or "None" if cross-site
+        });
+        console.log(`Token exchange successful, redirecting...`);
+        return res.redirect(req.originalUrl.split("?")[0]); // Strip code param
+      } catch (err: any) {
+        console.log("Token exchange error:", err.response?.data || err.message);
+      }
+
+    }
+
+    console.log("No code found, redirecting to Cognito login...");
+
+    return res.redirect(`${COGNITO_DOMAIN}/login?client_id=${COGNITO_CLIENT_ID}&response_type=code&scope=openid+profile+email&redirect_uri=${redirectUri}`);
+  }
 
 
   // environment setup
