@@ -18,6 +18,7 @@ export async function serializeUser(decodedData: any) {
       if (user) {
         return user;
       } else {
+        console.log("serializeUser: Creating new user for email", decodedData.email);
         return await createUser(decodedData.email);
       }
     });
