@@ -97,10 +97,10 @@ async function requireCognitoLogin(req: any, res: any, next: any) {
         req.user = decoded;
         console.log("JWT verified successfully: ", req.user);
 
-        return await serializeUser(req.user).then((user) => {
+        return await serializeUser(req.user).then(async (user) => {
           req.user = user;
           console.log("User serialized: ", user);
-          console.log("context: ", context({req}))
+          console.log("context: ", await context({req}))
           return next();
         });
 
