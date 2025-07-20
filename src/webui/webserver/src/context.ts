@@ -10,7 +10,7 @@ export interface CurrentUser {
 }
 
 export interface ApolloContext {
-  user: CurrentUser | undefined;
+  user: CurrentUser;
   logout: () => void;
   ifAllowed: (
     allowedRoles: Role[],
