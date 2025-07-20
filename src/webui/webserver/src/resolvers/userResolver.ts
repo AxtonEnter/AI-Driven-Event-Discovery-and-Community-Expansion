@@ -11,9 +11,9 @@ export const UserResolver = {
     currentUser: async (
       _parent: any,
       _args: any,
-      { user }: ApolloContext) => {
-        console.log("currentUser: ", user);
-        return user;
+      context: ApolloContext) => {
+        console.log("currentUser: ", context);
+        return context;
       },
   }
 }
