@@ -15,7 +15,7 @@ export async function serializeUser(decodedData: any) {
   if (decodedData?.email) {
     return await getUserByUsername(decodedData.email).then(async (user) => {
       console.log("serializeUser: ", user);
-      if (user) {
+      if (user && user.length > 0) {
         console.log("serializeUser: User found for email", decodedData.email);
         console.log("serializeUser: Returning existing user", user);
         return user;
