@@ -18,7 +18,7 @@ import { serializeUser, setupSessions } from "./auth.js";
 import fs from "fs"
 import https from "https"
 import { expressMiddleware } from "@as-integrations/express5";
-import { ApolloContext } from "./context.js";
+import context, { ApolloContext } from "./context.js";
 import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { Request, Response, NextFunction } from "express";
@@ -243,10 +243,7 @@ async function startServer() {
     "/graphql",
     cors<cors.CorsRequest>(CORS_CONFIG),
     express.json(),
-    expressMiddleware(server,
-      {
-        context: async ({ req }) => ({ token: req.headers.token }),
-      }),
+    expressMiddleware(server, { context: context })
   );
 
   const httpServer = createServer(app);
