@@ -244,7 +244,12 @@ async function startServer() {
     "/graphql",
     cors<cors.CorsRequest>(CORS_CONFIG),
     express.json(),
-    expressMiddleware(server, { context: context })
+    expressMiddleware(server, {
+      context: async ({ req }) => ({
+        ...((await context({ req })) || {}),
+        user: req.user,
+      })
+    })
   );
 
   const httpServer = createServer(app);
