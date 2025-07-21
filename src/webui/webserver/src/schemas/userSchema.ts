@@ -3,7 +3,7 @@ import { gql } from "graphql-tag";
 export const UserSchema = gql`
   type User {
     username: String!
-    role: Int
+    role: String
   }
 
   type Query {
