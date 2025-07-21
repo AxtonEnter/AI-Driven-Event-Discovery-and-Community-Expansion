@@ -34,7 +34,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 function Events() {
-  const [getEvents, getEventsResult] = useLazyQuery(GET_EVENTS);
+  const [getEvents, getEventsResult] = useLazyQuery(GET_EVENTS, {pollInterval: 2000});
 
   const [importOrgCsv, importOrgCsvResult] = useMutation(IMPORT_ORGANIZATION_CSV);
 
