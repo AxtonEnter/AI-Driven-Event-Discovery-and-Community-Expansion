@@ -2,6 +2,7 @@ import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import { OrganizationsRow } from "../db/tables.js";
 import { getOrganizationByID, getOrganizations, insertCsvOrganizations, parseCSVForOrganizations } from "../repositories/organizationRepo.js";
 import { getRegionByName } from "../repositories/regionRepo.js";
+import { ApolloContext } from "../context.js";
 
 const sqsClient = new SQSClient({ region: "us-east-1" }); // replace with your region
 
@@ -30,12 +31,16 @@ export const OrganizationResolver = {
   Mutation: {
     importOrganizations: async (
       _parent: any,
-      args: { csv: string, mode?: string }) => {
+      args: { csv: string, mode?: string },
+      context: ApolloContext) => {
       console.log("begin parse");
       return await insertCsvOrganizations(parseCSVForOrganizations(args.csv)).then(async () => {
         const command = new SendMessageCommand({
           QueueUrl: process.env.SQS_URL,
-          MessageBody: JSON.stringify((await getOrganizations()).map((item) => item.id)),
+          MessageBody: JSON.stringify({
+            orgs: (await getOrganizations()).map((item) => item.id),
+            user: context.user.username
+          }),
         });
 
         try {
