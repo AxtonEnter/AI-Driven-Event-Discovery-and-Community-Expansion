@@ -191,15 +191,15 @@ async function startServer() {
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'ejs');
     //setupDevAuth(app);
-    app.use(["/app", "/assets"], requireCognitoLogin);
+    app.use(["/app", "/assets", "/graphql"], requireCognitoLogin);
   }
   /**
    * mode: PRODUCTION
    * Require AWS Cognito authentication for all /app routes
    */
   else if (process.env.NODE_ENV === "production") {
-    // Require Cognito login for all /app and /assets routes
-    app.use(["/app", "/assets"], requireCognitoLogin);
+    // Require Cognito login for all /app, /assets, and /graphql routes
+    app.use(["/app", "/assets", "/graphql"], requireCognitoLogin);
   }
   else {
     process.exit(-1);
