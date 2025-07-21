@@ -127,8 +127,8 @@ async function startServer() {
           console.log("JWT verified successfully: ", req.user);
 
           return await serializeUser(req.user).then(async (user) => {
-            req.user = user;
-            console.log("User serialized: ", user);
+            req.user = Array.isArray(user) ? user[0] : user;
+            console.log("User serialized: ", req.user);
             console.log("context: ", await context({ req }))
             return next();
           });
