@@ -12,8 +12,8 @@ export const UserResolver = {
       _parent: any,
       _args: any,
       context: ApolloContext) => {
-        console.log("currentUser: ", context);
-        return context;
+        console.log("currentUser: ", context.user);
+        return context.user;
       },
   }
 }
