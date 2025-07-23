@@ -7,10 +7,9 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Events />} />
         <Route path="/app" element={<Events />} />
-        <Route path="/orgs" element={<Organizations />} />
-        <Route path="/users" element={<UserManagement />} />
+        <Route path="/app/orgs" element={<Organizations />} />
+        <Route path="/app/users" element={<UserManagement />} />
       </Routes>
     </BrowserRouter>
   );
