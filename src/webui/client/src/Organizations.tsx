@@ -17,7 +17,7 @@ interface Region {
 const ORGANIZATIONS_QUERY = gql`
   query GetOrganizations {
     organizations { id name }
-    regions { id name }
+    regions { koa_url name }
   }
 `;
 

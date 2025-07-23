@@ -32,8 +32,7 @@ const UserManagement: React.FC = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 90 },
-    { field: "username", headerName: "Username", flex: 1 },
+    { field: "id", headerName: "Username", width: 90, valueGetter: (value, row) => {value; return row.username} },
     {
       field: "role",
       headerName: "Role",
