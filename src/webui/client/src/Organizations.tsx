@@ -10,7 +10,7 @@ interface Organization {
 }
 
 interface Region {
-  id: number;
+  koa_url: string;
   name: string;
 }
 
@@ -101,7 +101,7 @@ const Organizations: React.FC = () => {
 
   // DataGrid columns for regions
   const regionColumns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 90 },
+    { field: "koa_url", headerName: "KOA URL", width: 90 },
     { field: "name", headerName: "Name", flex: 1 },
     {
       field: "actions",

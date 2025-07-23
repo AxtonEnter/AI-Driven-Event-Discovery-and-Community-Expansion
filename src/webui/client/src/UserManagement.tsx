@@ -6,7 +6,7 @@ import { Page } from "./common/Page";
 
 const USERS_QUERY = gql`
   query GetUsers {
-    users { id username email role created_at updated_at }
+    users { username role }
   }
 `;
 
@@ -34,7 +34,6 @@ const UserManagement: React.FC = () => {
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 90 },
     { field: "username", headerName: "Username", flex: 1 },
-    { field: "email", headerName: "Email", flex: 1 },
     {
       field: "role",
       headerName: "Role",
@@ -51,8 +50,6 @@ const UserManagement: React.FC = () => {
         </Select>
       ),
     },
-    { field: "created_at", headerName: "Created At", flex: 1 },
-    { field: "updated_at", headerName: "Updated At", flex: 1 },
   ];
 
   if (loading) return <div>Loading...</div>;
