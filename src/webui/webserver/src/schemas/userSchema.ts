@@ -2,7 +2,7 @@ import { gql } from "graphql-tag";
 
 export const UserSchema = gql`
   type User {
-    username: String!
+    username: String
     role: String
   }
 
