@@ -11,6 +11,7 @@ export const GET_EVENTS = gql`
         html
         text
         addedat
+        status
         statuschangedat
         rejectedreason
         user {

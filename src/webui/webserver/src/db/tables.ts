@@ -6,6 +6,7 @@ export interface EventsRow {
   html: string;
   text?: string;
   addedat: Date;
+  status: number;
   statuschangedat?: Date;
   rejectedreason?: string;
   user?: string;

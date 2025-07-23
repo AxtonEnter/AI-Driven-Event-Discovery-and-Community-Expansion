@@ -8,6 +8,7 @@ export const EventsSchema = gql`
     html: String!
     text: String
     addedat: DateTime!
+    status: Int!
     statuschangedat: DateTime
     rejectedreason: String
     user: User

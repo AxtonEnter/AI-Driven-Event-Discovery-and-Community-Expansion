@@ -1,5 +1,5 @@
 import { Button, Checkbox, Chip, Collapse, Divider, Paper, Snackbar, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
-import { EventItem } from "../../types/Event";
+import { ApprovalStatus, EventItem } from "../../types/Event";
 import EditIcon from '@mui/icons-material/Edit';
 import { useState } from "react";
 import { Check, Close, ExpandLess, ExpandMore } from "@mui/icons-material";
@@ -26,6 +26,7 @@ export function EventRow(props: Props) {
   const [denialReasonModalOpen, setDenialReasonModalOpen] = useState<boolean>(false);
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [rejectSnackbarOpen, setRejectSnackbarOpen] = useState<boolean>(false);
+  const [pendSnackbarOpen, setPendSnackbarOpen] = useState<boolean>(false);
 
 
 
@@ -50,6 +51,11 @@ export function EventRow(props: Props) {
   function handleRejectUndoClick() {
     pendEvent({ refetchQueries: [GET_EVENTS] });
     setRejectSnackbarOpen(false);
+  }
+
+  function handlePendClick() {
+    pendEvent({ refetchQueries: [GET_EVENTS] });
+    setPendSnackbarOpen(true)
   }
 
   const showWarningTag = props.event.tags.length > 0;
@@ -99,10 +105,13 @@ export function EventRow(props: Props) {
           </Paper>
         </Collapse>
       </TableCell>
-      <TableCell style={{ verticalAlign: 'top' }}>
+      {props.event.status === ApprovalStatus.PENDING ? <TableCell style={{ verticalAlign: 'top' }}>
         <Button startIcon={<Check />} color="success" variant="contained" sx={{ maxWidth: '150px', width: '70%', mb: 1 }} onClick={handleAcceptClick}>Accept</Button>
         <Button onClick={() => setDenialReasonModalOpen(true)} startIcon={<Close />} color="error" variant="contained" sx={{ maxWidth: '150px', width: '70%' }}>Reject</Button>
       </TableCell>
+      : <TableCell style={{ verticalAlign: 'top' }}>
+        <Button startIcon={<Check />} color="warning" variant="contained" sx={{ maxWidth: '150px', width: '70%', mb: 1 }} onClick={handlePendClick}>Pend</Button>
+      </TableCell>}
       <EditEventUrlModal currentUrl={props.event.url} isOpen={editModalOpen} handleClose={() => setEditModalOpen(false)} />
       <FullContentModal htmlContent={props.event.html} isOpen={contentModalOpen} handleClose={() => setContentModalOpen(false)} />
       <DenialReasonModal isOpen={denialReasonModalOpen} handleClose={() => setDenialReasonModalOpen(false)} handleSubmit={handleRejectSubmitClick} />
@@ -120,6 +129,12 @@ export function EventRow(props: Props) {
         onClose={() => setRejectSnackbarOpen(false)}
         message="Event marked as Rejected"
         action={<Button onClick={handleRejectUndoClick} color="secondary" variant="text">Undo</Button>}
+      />
+      <Snackbar
+        open={pendSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setPendSnackbarOpen(false)}
+        message="Event marked as Pending"
       />
     </TableRow>
   )

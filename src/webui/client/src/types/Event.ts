@@ -3,6 +3,7 @@ import { Tag } from "./Tag";
 import { User } from "./User";
 
 export enum ApprovalStatus {
+  PENDING,
   APPROVED,
   REJECTED,
 }
@@ -14,6 +15,7 @@ export type EventItem = {
   html: string;
   text?: string;
   addedat: Date;
+  status: ApprovalStatus;
   statuschangedat?: Date;
   rejectedreason?: string;
   user?: User;
