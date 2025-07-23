@@ -234,7 +234,8 @@ async function startServer() {
   });
 
   // Catch-all for React Router client-side routes under /app
-  app.get("/app/*", function (req: express.Request, res: express.Response) {
+  // You can't put a * alone. You have to name it for some unknown reason
+  app.get("/app/*splat", function (req: express.Request, res: express.Response) {
     res.sendFile(path.join(__dirname, "/client/dist", "index.html"));
   });
 
