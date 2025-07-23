@@ -1,6 +1,6 @@
 import './App.css'
 import { Page } from './common/Page.js'
-import { Box, Tab, Table, TableBody, TableCell, TableContainer, TableHead, Tabs } from '@mui/material'
+import { Box, Snackbar, Tab, Table, TableBody, TableCell, TableContainer, TableHead, Tabs } from '@mui/material'
 import { EventItem } from './types/Event.js';
 import { EventRow } from './common/event/EventRow.js';
 import { SearchFilterOptions } from './common/search/SearchFilterOptions.js';
@@ -34,7 +34,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 function Events() {
-  const [getEvents, getEventsResult] = useLazyQuery(GET_EVENTS, {pollInterval: 2000});
+  const [getEvents, getEventsResult] = useLazyQuery(GET_EVENTS, { pollInterval: 2000 });
 
   const [importOrgCsv, importOrgCsvResult] = useMutation(IMPORT_ORGANIZATION_CSV);
 
@@ -42,11 +42,13 @@ function Events() {
 
   const [eventsPanel, setEventsPanel] = useState<number>(0);
   const [selectedEvents, setSelectedEvents] = useState<EventItem[]>([]);
+  const [importSnackbarOpen, setImportSnackbarOpen] = useState<boolean>(false);
 
   function handleSelect(event: EventItem) {
     setSelectedEvents((prev: EventItem[]) =>
       prev.includes(event) ? prev.filter((e) => e !== event) : [...prev, event]
     );
+    setImportSnackbarOpen(true);
   }
 
   return (
@@ -54,7 +56,7 @@ function Events() {
       <Box>
         <CsvUpload result={importOrgCsvResult} handleUpload={async function (file: File): Promise<void> {
           console.log("begin upload");
-          importOrgCsv({variables: {csv: await file.text()}});
+          importOrgCsv({ variables: { csv: await file.text() } });
         }} />
         <SearchFilterOptions selectedEvents={selectedEvents} query={getEvents} />
       </Box>
@@ -119,6 +121,13 @@ function Events() {
           </TableContainer>
         </RequestWrapper>
       </Box>
+
+      <Snackbar
+        open={importSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setImportSnackbarOpen(false)}
+        message="Import successful. Engaging Web Scraper..."
+      />
     </Page >
   )
 }
