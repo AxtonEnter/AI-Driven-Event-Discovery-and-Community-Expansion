@@ -1,4 +1,4 @@
-import { getRegionByName } from "../repositories/regionRepo.js";
+import { deleteAllRegions, deleteRegion, getRegionByName } from "../repositories/regionRepo.js";
 
 export const RegionResolver = {
   Query: {
@@ -7,5 +7,15 @@ export const RegionResolver = {
       args: {name: string}) => {
         return await getRegionByName(args.name);
       }  
+  },
+  Mutation: {
+    deleteRegion: async (
+      _parent: any,
+      args: {id: number}) => {
+        return await deleteRegion(args.id);
+      },
+    deleteAllRegions: async () => {
+      return await deleteAllRegions();
+    }
   }
 }

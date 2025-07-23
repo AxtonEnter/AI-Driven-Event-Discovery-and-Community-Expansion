@@ -9,6 +9,8 @@ import { useCurrentUser } from './CurrentUserProvider';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import ApprovalIcon from '@mui/icons-material/Approval';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import BusinessIcon from '@mui/icons-material/Business';
+import EventNoteIcon from '@mui/icons-material/EventNote';
 
 
 type Props = {
@@ -26,7 +28,8 @@ export const Page = ({ children }: Props) => {
           <Stack direction={"row"} alignItems={"center"}>
             <Divider orientation='vertical' sx={{ mx: 2 }} component={"p"} />
 
-            <Button sx={{ height: 60 }} onClick={() => navigate('/')}>Events</Button>
+            <Button sx={{ height: 60 }} startIcon={<EventNoteIcon />} onClick={() => navigate('/')}>Events</Button>
+            <Button sx={{ height: 60 }} startIcon={<BusinessIcon />} onClick={() => navigate('/orgs')}>Organizations</Button>
 
             {currentUser.role === "admin" && (
               <Button sx={{ height: 60 }} onClick={() => navigate('/settings')}>Settings</Button>

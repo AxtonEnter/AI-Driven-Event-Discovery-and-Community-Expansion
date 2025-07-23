@@ -19,5 +19,7 @@ export const OrganizationSchema = gql`
 
   type Mutation {
     importOrganizations(csv: String!, mode: String): [Organization]
+    deleteOrganization(id: ID!): Boolean
+    deleteAllOrganizations: Boolean
   }
 `;

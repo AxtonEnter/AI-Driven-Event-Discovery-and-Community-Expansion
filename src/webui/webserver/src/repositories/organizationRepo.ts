@@ -122,3 +122,13 @@ export async function insertCsvOrganizations(organizations: CsvOrganizationRow[]
   console.log("insert")
   await knex("organizations").insert(await convertCsvOrganizationsToPartials(organizations, "add"));
 }
+
+export async function deleteOrganization(id: number): Promise<boolean> {
+  const result = await knex("organizations").where({ id }).delete();
+  return result > 0;
+}
+
+export async function deleteAllOrganizations(): Promise<boolean> {
+  const result = await knex("organizations").delete();
+  return result > 0;
+}

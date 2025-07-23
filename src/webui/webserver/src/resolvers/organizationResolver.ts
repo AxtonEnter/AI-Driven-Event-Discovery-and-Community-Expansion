@@ -1,6 +1,6 @@
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import { OrganizationsRow } from "../db/tables.js";
-import { getOrganizationByID, getOrganizations, insertCsvOrganizations, parseCSVForOrganizations } from "../repositories/organizationRepo.js";
+import { deleteAllOrganizations, deleteOrganization, getOrganizationByID, getOrganizations, insertCsvOrganizations, parseCSVForOrganizations } from "../repositories/organizationRepo.js";
 import { getRegionByName } from "../repositories/regionRepo.js";
 import { ApolloContext } from "../context.js";
 
@@ -50,8 +50,14 @@ export const OrganizationResolver = {
           console.error("Error sending message:", error);
         }
       });
-
-
+    },
+    deleteOrganization: async (
+      _parent: any,
+      args: { id: number }) => {
+      return await deleteOrganization(args.id);
+    },
+    deleteAllOrganizations: async () => {
+      return await deleteAllOrganizations();
     }
   }
 }

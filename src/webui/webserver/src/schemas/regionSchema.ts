@@ -9,4 +9,9 @@ export const RegionSchema = gql`
   type Query {
     region(name: String!): Region
   }
+
+  type Mutation {
+    deleteRegion(id: ID!): Boolean
+    deleteAllRegions: Boolean
+  }
 `
