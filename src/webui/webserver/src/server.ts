@@ -45,6 +45,8 @@ const CORS_CONFIG = {
 
 const __dirname = path.resolve(path.dirname(''))
 
+//process.loadEnvFile(path.join(__dirname, '/.env'));
+
 
 
 // AWS Cognito config (set these in your environment)
@@ -228,6 +230,11 @@ async function startServer() {
 
   app.get("/app/", function (req: express.Request, res: express.Response) {
     res.header
+    res.sendFile(path.join(__dirname, "/client/dist", "index.html"));
+  });
+
+  // Catch-all for React Router client-side routes under /app
+  app.get("/app/*", function (req: express.Request, res: express.Response) {
     res.sendFile(path.join(__dirname, "/client/dist", "index.html"));
   });
 
