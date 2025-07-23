@@ -12,9 +12,10 @@
   "dependencies": {
     "@apollo/client": "^3.13.1",
     "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^6.4.5",
-    "@mui/material": "^6.4.5",
+    "@mui/material": "^6.5.0",
+    "@mui/x-data-grid": "^8.9.1",
     "aws-amplify": "^6.14.4",
     "client": "file:",
     "date-fns": "^4.1.0",
