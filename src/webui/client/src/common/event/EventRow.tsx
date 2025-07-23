@@ -106,11 +106,11 @@ export function EventRow(props: Props) {
         </Collapse>
       </TableCell>
       {props.event.status === ApprovalStatus.PENDING ? <TableCell style={{ verticalAlign: 'top' }}>
-        <Button startIcon={<Check />} color="success" variant="contained" sx={{ maxWidth: '150px', width: '70%', mb: 1 }} onClick={handleAcceptClick}>Accept</Button>
-        <Button onClick={() => setDenialReasonModalOpen(true)} startIcon={<Close />} color="error" variant="contained" sx={{ maxWidth: '150px', width: '70%' }}>Reject</Button>
+        <Button startIcon={<Check />} color="success" variant="contained" sx={{ minWidth: '100px', maxWidth: '150px', width: '70%', mb: 1 }} onClick={handleAcceptClick}>Accept</Button>
+        <Button onClick={() => setDenialReasonModalOpen(true)} startIcon={<Close />} color="error" variant="contained" sx={{ minWidth: '100px', maxWidth: '150px', width: '70%' }}>Reject</Button>
       </TableCell>
       : <TableCell style={{ verticalAlign: 'top' }}>
-        <Button startIcon={<Check />} color="warning" variant="contained" sx={{ maxWidth: '150px', width: '70%', mb: 1 }} onClick={handlePendClick}>Pend</Button>
+        <Button startIcon={<Check />} color="warning" variant="contained" sx={{ minWidth: '100px', maxWidth: '150px', width: '70%', mb: 1 }} onClick={handlePendClick}>Pend</Button>
       </TableCell>}
       <EditEventUrlModal currentUrl={props.event.url} isOpen={editModalOpen} handleClose={() => setEditModalOpen(false)} />
       <FullContentModal htmlContent={props.event.html} isOpen={contentModalOpen} handleClose={() => setContentModalOpen(false)} />
