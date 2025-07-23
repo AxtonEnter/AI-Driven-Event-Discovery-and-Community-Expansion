@@ -74,7 +74,7 @@ export function EventRow(props: Props) {
       <TableCell style={{ verticalAlign: 'top' }}>
         <Stack direction={"column"} justifyContent={"center"}>
           <div>
-            <a href={props.event.url}>{props.event.url}</a>
+            <a style={{color: "text.secondary"}} href={props.event.url}>{props.event.url}</a>
           </div>
           <Button startIcon={<EditIcon />} onClick={() => setEditModalOpen(true)}>Edit</Button>
             {showWarningTag && (
@@ -91,6 +91,7 @@ export function EventRow(props: Props) {
       </TableCell>
       <TableCell width={"65%"} style={{ verticalAlign: 'top' }}>
         <Typography variant="h5">{props.event.title}</Typography>
+        <Typography variant="subtitle1">Org: {props.event.organization?.name}</Typography>
         <Divider />
         <Button onClick={() => setContentModalOpen(true)} variant="contained">Show HTML Content</Button>
         <Button onClick={() => setImageModalOpen(true)} variant="contained" style={{marginLeft : '20px'}}>Show Images</Button>
