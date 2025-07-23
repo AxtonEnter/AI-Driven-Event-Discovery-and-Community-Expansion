@@ -8,6 +8,7 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Events />} />
+        <Route path="/app" element={<Events />} />
         <Route path="/orgs" element={<Organizations />} />
         <Route path="/users" element={<UserManagement />} />
       </Routes>
