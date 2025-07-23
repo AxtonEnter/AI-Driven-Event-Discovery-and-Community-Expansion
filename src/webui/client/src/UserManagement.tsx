@@ -2,6 +2,7 @@ import React from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { Box, Typography, Select, MenuItem } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { Page } from "./common/Page";
 
 const USERS_QUERY = gql`
   query GetUsers {
@@ -58,17 +59,19 @@ const UserManagement: React.FC = () => {
   if (error) return <div>{error.message}</div>;
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h4" gutterBottom>User Management</Typography>
-      <Box sx={{ height: 500 }}>
-        <DataGrid
-          rows={data?.users || []}
-          columns={columns}
-          pageSizeOptions={[50]}
-          rowSelection={false}
-        />
+    <Page>
+      <Box sx={{ p: 4 }}>
+        <Typography variant="h4" gutterBottom>User Management</Typography>
+        <Box sx={{ height: 500 }}>
+          <DataGrid
+            rows={data?.users || []}
+            columns={columns}
+            pageSizeOptions={[50]}
+            rowSelection={false}
+          />
+        </Box>
       </Box>
-    </Box>
+    </Page>
   );
 };
 

@@ -30,10 +30,10 @@ export const Page = ({ children }: Props) => {
             <Divider orientation='vertical' sx={{ mx: 2 }} component={"p"} />
 
             <Button sx={{ height: 60 }} startIcon={<EventNoteIcon />} onClick={() => navigate('/')}>Events</Button>
-            <Button sx={{ height: 60 }} startIcon={<BusinessIcon />} onClick={() => navigate('/orgs')}>Organizations</Button>
+            <Button sx={{ height: 60 }} startIcon={<BusinessIcon />} onClick={() => navigate('/app/orgs')}>Organizations</Button>
 
             {currentUser.role === "admin" && (
-              <Button sx={{ height: 60 }} startIcon={<GroupIcon />} onClick={() => navigate('/users')}>Users</Button>
+              <Button sx={{ height: 60 }} startIcon={<GroupIcon />} onClick={() => navigate('/app/users')}>Users</Button>
             )}
           </Stack>
 

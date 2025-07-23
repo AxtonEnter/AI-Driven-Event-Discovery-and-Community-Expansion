@@ -2,6 +2,7 @@ import React from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { Box, Button, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { Page } from "./common/Page";
 
 interface Organization {
   id: number;
@@ -119,29 +120,31 @@ const Organizations: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h4" gutterBottom>Organizations</Typography>
-      <Button variant="contained" color="error" sx={{ mb: 2 }} onClick={deleteAll}>
-        Delete All Organizations & Regions
-      </Button>
-      <Box sx={{ height: 400, mb: 4 }}>
-        <DataGrid
-          rows={organizations}
-          columns={orgColumns}
-          rowSelection={false}
-          autoPageSize
-        />
+    <Page>
+      <Box sx={{ p: 4 }}>
+        <Typography variant="h4" gutterBottom>Organizations</Typography>
+        <Button variant="contained" color="error" sx={{ mb: 2 }} onClick={deleteAll}>
+          Delete All Organizations & Regions
+        </Button>
+        <Box sx={{ height: 400, mb: 4 }}>
+          <DataGrid
+            rows={organizations}
+            columns={orgColumns}
+            rowSelection={false}
+            autoPageSize
+          />
+        </Box>
+        <Typography variant="h4" gutterBottom>Regions</Typography>
+        <Box sx={{ height: 400 }}>
+          <DataGrid
+            rows={regions}
+            columns={regionColumns}
+            rowSelection={false}
+            autoPageSize
+          />
+        </Box>
       </Box>
-      <Typography variant="h4" gutterBottom>Regions</Typography>
-      <Box sx={{ height: 400 }}>
-        <DataGrid
-          rows={regions}
-          columns={regionColumns}
-          rowSelection={false}
-          autoPageSize
-        />
-      </Box>
-    </Box>
+    </Page>
   );
 };
 
