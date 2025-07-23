@@ -8,6 +8,7 @@ export const UserSchema = gql`
 
   type Query {
     user(id: ID!): User
+    users: [User]
     currentUser: User
   }
 `

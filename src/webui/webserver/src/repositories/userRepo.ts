@@ -9,3 +9,7 @@ export async function createUser(username: string, role: string = "guest") {
   const [user] = await knex("users").insert({username, role}).returning("*");
   return user;
 }
+
+export async function getUsers() {
+  return await knex("users").select();
+}
