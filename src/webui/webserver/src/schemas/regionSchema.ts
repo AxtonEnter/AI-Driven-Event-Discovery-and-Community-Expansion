@@ -8,6 +8,7 @@ export const RegionSchema = gql`
 
   type Query {
     region(name: String!): Region
+    regions: [Region]
   }
 
   type Mutation {
