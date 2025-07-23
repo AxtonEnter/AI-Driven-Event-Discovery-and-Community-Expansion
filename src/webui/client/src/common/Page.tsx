@@ -11,6 +11,7 @@ import ApprovalIcon from '@mui/icons-material/Approval';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import BusinessIcon from '@mui/icons-material/Business';
 import EventNoteIcon from '@mui/icons-material/EventNote';
+import GroupIcon from '@mui/icons-material/Group';
 
 
 type Props = {
@@ -32,7 +33,7 @@ export const Page = ({ children }: Props) => {
             <Button sx={{ height: 60 }} startIcon={<BusinessIcon />} onClick={() => navigate('/orgs')}>Organizations</Button>
 
             {currentUser.role === "admin" && (
-              <Button sx={{ height: 60 }} onClick={() => navigate('/settings')}>Settings</Button>
+              <Button sx={{ height: 60 }} startIcon={<GroupIcon />} onClick={() => navigate('/users')}>Users</Button>
             )}
           </Stack>
 
