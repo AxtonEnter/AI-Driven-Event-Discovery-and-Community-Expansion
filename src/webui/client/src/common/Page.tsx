@@ -4,7 +4,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import { AppBar, Avatar, Button, Divider, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router';
-import { ProgresssContainer } from './ProgressContainer';
+//import { ProgresssContainer } from './ProgressContainer';
 import { useCurrentUser } from './CurrentUserProvider';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import ApprovalIcon from '@mui/icons-material/Approval';
@@ -58,7 +58,7 @@ export const Page = ({ children }: Props) => {
         </Typography>
       </footer>
 
-      <ProgresssContainer />
+      {/* <ProgresssContainer /> */}
     </Box>
   )
 }
