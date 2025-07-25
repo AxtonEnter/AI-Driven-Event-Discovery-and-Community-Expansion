@@ -11,4 +11,8 @@ export const UserSchema = gql`
     users: [User]
     currentUser: User
   }
+
+  type Mutation {
+    updateUserRole(username: String!, role: String!): User
+  }
 `

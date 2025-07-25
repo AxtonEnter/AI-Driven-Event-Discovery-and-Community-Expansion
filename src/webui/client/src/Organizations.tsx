@@ -141,6 +141,7 @@ const Organizations: React.FC = () => {
             rows={regions}
             columns={regionColumns}
             rowSelection={false}
+            getRowId={(row) => row.name}
             autoPageSize
           />
         </Box>

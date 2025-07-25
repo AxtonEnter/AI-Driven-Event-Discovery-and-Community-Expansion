@@ -1,5 +1,5 @@
-import { ApolloContext } from "../context.js";
-import { getUserByUsername, getUsers } from "../repositories/userRepo.js"
+import { ApolloContext, Role } from "../context.js";
+import { getUserByUsername, getUsers, updateUserRole } from "../repositories/userRepo.js"
 
 export const UserResolver = {
   Query: {
@@ -20,6 +20,16 @@ export const UserResolver = {
       _args: any
     ) => {
       return await getUsers();
+    }
+  },
+  Mutation: {
+    updateUserRole: async (
+      _parent: any,
+      args: { username: string, role: string },
+      context: ApolloContext) => {
+      return context.ifAllowed([Role.ADMIN], async (user) => {
+        return await updateUserRole(args.username, args.role);
+      });
     }
   }
 }
