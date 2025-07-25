@@ -32,7 +32,7 @@ const UserManagement: React.FC = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "Username", width: 90, valueGetter: (value, row) => {value; return row.username} },
+    { field: "username", headerName: "Username", width: 90 },
     {
       field: "role",
       headerName: "Role",
@@ -64,6 +64,7 @@ const UserManagement: React.FC = () => {
             columns={columns}
             pageSizeOptions={[50]}
             rowSelection={false}
+            getRowId={(row) => row.username}
           />
         </Box>
       </Box>

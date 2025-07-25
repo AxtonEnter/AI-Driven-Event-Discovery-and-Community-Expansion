@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { Box, Button, Typography } from "@mui/material";
@@ -28,8 +29,8 @@ const DELETE_ORGANIZATION = gql`
 `;
 
 const DELETE_REGION = gql`
-  mutation DeleteRegion($id: ID!) {
-    deleteRegion(id: $id)
+  mutation DeleteRegion($name: String!) {
+    deleteRegion(name: $name)
   }
 `;
 
@@ -53,8 +54,8 @@ const Organizations: React.FC = () => {
     try {
       await deleteOrganizationMutation({ variables: { id } });
       refetch();
-    } catch (err) {
-      alert("Failed to delete organization");
+    } catch (err: any) {
+      alert("Failed to delete organization: " + err.message);
     }
   };
 
@@ -62,8 +63,8 @@ const Organizations: React.FC = () => {
     try {
       await deleteRegionMutation({ variables: { id } });
       refetch();
-    } catch (err) {
-      alert("Failed to delete region");
+    } catch (err: any) {
+      alert("Failed to delete region: " + err.message);
     }
   };
 
@@ -71,8 +72,8 @@ const Organizations: React.FC = () => {
     try {
       await deleteAllMutation();
       refetch();
-    } catch (err) {
-      alert("Failed to delete all");
+    } catch (err: any) {
+      alert("Failed to delete all: " + err.message);
     }
   };
 

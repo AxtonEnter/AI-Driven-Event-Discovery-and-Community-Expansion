@@ -14,8 +14,8 @@ export async function insertRegion(name: string, koa_url?: string): Promise<void
   await knex("regions").insert({name, koa_url})
 }
 
-export async function deleteRegion(id: number): Promise<boolean> {
-  const result = await knex("regions").where({ id }).delete();
+export async function deleteRegion(name: string): Promise<boolean> {
+  const result = await knex("regions").where({ name }).delete();
   return result > 0;
 }
 
