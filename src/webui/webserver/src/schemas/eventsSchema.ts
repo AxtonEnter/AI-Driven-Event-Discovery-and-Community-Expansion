@@ -41,5 +41,6 @@ export const EventsSchema = gql`
     rejectEvents(ids: [ID], reason: String!): Boolean
     acceptEvents(ids: [ID]): Boolean
     pendEvents(ids: [ID]): Boolean
+    deleteAllEvents: Boolean
   }
 `

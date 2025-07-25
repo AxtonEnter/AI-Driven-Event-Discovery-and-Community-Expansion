@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Page } from "./common/Page";
+import { DELETE_ALL_EVENTS } from "./queries/eventQueries";
 
 interface Organization {
   id: number;
@@ -46,6 +47,7 @@ const Organizations: React.FC = () => {
   const [deleteOrganizationMutation] = useMutation(DELETE_ORGANIZATION);
   const [deleteRegionMutation] = useMutation(DELETE_REGION);
   const [deleteAllMutation] = useMutation(DELETE_ALL);
+  const [deleteAllEventsMutation] = useMutation(DELETE_ALL_EVENTS);
 
   const organizations: Organization[] = data?.organizations || [];
   const regions: Region[] = data?.regions || [];
@@ -76,6 +78,18 @@ const Organizations: React.FC = () => {
       alert("Failed to delete all: " + err.message);
     }
   };
+
+  const deleteAllEvents = async () => {
+    try {
+      const result = await deleteAllEventsMutation();
+      if (!result.data.deleteAllEvents) {
+        alert("No events to delete.");
+      }
+      refetch();
+    } catch (err: any) {
+      alert("Failed to delete all events: " + err.message);
+    }
+  }
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error.message}</div>;
@@ -124,9 +138,14 @@ const Organizations: React.FC = () => {
     <Page>
       <Box sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom>Organizations</Typography>
-        <Button variant="contained" color="error" sx={{ mb: 2 }} onClick={deleteAll}>
-          Delete All Organizations & Regions
-        </Button>
+        <Stack direction="row" spacing={2} mb={2}>
+          <Button variant="contained" color="error" sx={{ mb: 2 }} onClick={() => confirm("Are you sure you want to delete all organizations and regions?") && deleteAll()}>
+            Delete All Organizations & Regions
+          </Button>
+          <Button variant="contained" color="error" sx={{ mb: 2 }} onClick={() => confirm("Are you sure you want to delete all events?") && deleteAllEvents()}>
+            Delete All Events
+          </Button>
+        </Stack>
         <Box sx={{ height: 400, mb: 4 }}>
           <DataGrid
             rows={organizations}
