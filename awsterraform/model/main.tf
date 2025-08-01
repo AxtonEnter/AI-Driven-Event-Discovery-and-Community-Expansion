@@ -9,7 +9,14 @@ locals {
 resource "aws_instance" "model_server" {
    ami           = var.model_ami
    instance_type = var.instance_type
-   key_name      = "${local.aws_key}"                  
+   key_name      = "${local.aws_key}"
+   user_data = <<-EOF
+              <powershell>
+              Set-Location -Path "C:\Users\Administrator\Model\"
+              python predict_events.py
+              </powershell>
+              <persist>true</persist>
+              EOF                     
   
    tags = {
      Name = "model server"
