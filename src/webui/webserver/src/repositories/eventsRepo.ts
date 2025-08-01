@@ -66,3 +66,8 @@ export async function pendEvent(id: number): Promise<void> {
 export async function pendEvents(ids: number[]): Promise<void> {
   await knex("events").update({user: null, status: 0}).whereIn('id', ids);
 }
+
+export async function deleteAllEvents(): Promise<boolean> {
+  const result = await knex("events").delete();
+  return result > 0;
+}

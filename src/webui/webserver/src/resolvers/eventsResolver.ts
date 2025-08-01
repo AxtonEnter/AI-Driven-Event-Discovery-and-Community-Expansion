@@ -89,5 +89,14 @@ export const EventsResolver = {
       args: {ids: number[],}) => {
         return pendEvents(args.ids);
     },
+    deleteAllEvents: async (
+      _parent: any,
+      _args: any) => {
+        return await getEvents().then(async (events) => {
+          if (events.length === 0) return false;
+          const result = await Promise.all(events.map(event => pendEvent(event.id)));
+          return result.length > 0;
+        });
+    }
   }
 }

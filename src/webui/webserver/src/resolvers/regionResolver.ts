@@ -16,8 +16,8 @@ export const RegionResolver = {
   Mutation: {
     deleteRegion: async (
       _parent: any,
-      args: {id: number}) => {
-        return await deleteRegion(args.id);
+      args: {name: string}) => {
+        return await deleteRegion(args.name);
       },
     deleteAllRegions: async () => {
       return await deleteAllRegions();

@@ -11,8 +11,8 @@ const USERS_QUERY = gql`
 `;
 
 const UPDATE_ROLE_MUTATION = gql`
-  mutation UpdateUserRole($id: ID!, $role: String!) {
-    updateUserRole(id: $id, role: $role) { id role }
+  mutation UpdateUserRole($username: String!, $role: String!) {
+    updateUserRole(username: $username, role: $role) { id role }
   }
 `;
 
@@ -22,9 +22,9 @@ const UserManagement: React.FC = () => {
   const { data, loading, error, refetch } = useQuery(USERS_QUERY);
   const [updateRole] = useMutation(UPDATE_ROLE_MUTATION);
 
-  const handleRoleChange = async (id: number, role: string) => {
+  const handleRoleChange = async (username: string, role: string) => {
     try {
-      await updateRole({ variables: { id, role } });
+      await updateRole({ variables: { username, role } });
       refetch();
     } catch {
       alert("Failed to update role");
@@ -32,7 +32,7 @@ const UserManagement: React.FC = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "Username", width: 90, valueGetter: (value, row) => {value; return row.username} },
+    { field: "username", headerName: "Username", width: 90 },
     {
       field: "role",
       headerName: "Role",
@@ -40,7 +40,7 @@ const UserManagement: React.FC = () => {
       renderCell: (params: GridRenderCellParams) => (
         <Select
           value={params.value}
-          onChange={e => handleRoleChange(params.row.id, e.target.value)}
+          onChange={e => handleRoleChange(params.row.username, e.target.value)}
           size="small"
         >
           {ROLE_OPTIONS.map(role => (
@@ -64,6 +64,7 @@ const UserManagement: React.FC = () => {
             columns={columns}
             pageSizeOptions={[50]}
             rowSelection={false}
+            getRowId={(row) => row.username}
           />
         </Box>
       </Box>

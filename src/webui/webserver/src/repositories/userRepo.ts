@@ -13,3 +13,10 @@ export async function createUser(username: string, role: string = "guest") {
 export async function getUsers() {
   return await knex("users").select();
 }
+
+export async function updateUserRole(username: string, role: string) {
+  const [user] = await knex("users").where({username}).update({
+    role
+  }).returning("*");
+  return user;
+}

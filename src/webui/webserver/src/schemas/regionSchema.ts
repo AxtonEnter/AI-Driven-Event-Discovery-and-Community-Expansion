@@ -12,7 +12,7 @@ export const RegionSchema = gql`
   }
 
   type Mutation {
-    deleteRegion(id: ID!): Boolean
+    deleteRegion(name: String!): Boolean
     deleteAllRegions: Boolean
   }
 `

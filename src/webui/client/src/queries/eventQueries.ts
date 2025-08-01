@@ -134,3 +134,9 @@ export const PEND_EVENTS = gql`
     pendEvents(ids: $ids)
   }
 `;
+
+export const DELETE_ALL_EVENTS = gql`
+  mutation DeleteAllEvents {
+    deleteAllEvents
+  }
+`;
