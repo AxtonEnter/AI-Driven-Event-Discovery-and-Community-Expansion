@@ -23,9 +23,6 @@ DB_PORT = 5432
 # Create SQS client
 sqs = boto3.client("sqs")
 
-receivedMessageIds = set()
-
-
 async def receive_messages():
     """Poll messages from SQS (forwarded from SNS)."""
     try:
@@ -36,6 +33,7 @@ async def receive_messages():
         )
         messages = response.get("Messages", [])
         for message in messages:
+            await delete_message(message["ReceiptHandle"])
             await process_message(message)
     except ClientError as e:
         logger.error(f"Error receiving messages: {e}")
@@ -54,10 +52,7 @@ async def process_message(message):
     """Parse message body and start scraping."""
     try:
         messageId = message['MessageId']
-        if messageId in receivedMessageIds:
-            logger.info(f"Message {messageId} already processed, skipping.")
-            return
-        receivedMessageIds.add(messageId)
+        logger.info(f"Processing message ID: {messageId}")
         body = json.loads(message['Body'])
 
         orgIds = body.get("orgs", [])
@@ -98,21 +93,22 @@ async def process_message(message):
 
     except Exception as e:
         logger.error(f"Error processing message: {e}")
-    finally:
-        await delete_message(message["ReceiptHandle"])
 
 
 async def main_loop():
-    """Continuously poll and process messages."""
+    """Continuously poll and process messages without blocking on processing."""
     import datetime
     while True:
         currenttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print("Polling for messages..." + currenttime)
-        # Receive messages from SQS
+        
         messages = await receive_messages()
         if messages:
-            await asyncio.gather(*(process_message(msg) for msg in messages))
+            for msg in messages:
+                asyncio.create_task(process_message(msg))
+        
         await asyncio.sleep(10)
+
 
 
 if __name__ == "__main__":
