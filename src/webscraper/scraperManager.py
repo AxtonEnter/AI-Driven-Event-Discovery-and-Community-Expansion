@@ -32,6 +32,14 @@ class scraperManager:
         self.logger = logging.getLogger(logger_name)
         self.logger.setLevel(logging.DEBUG)
 
+        # Cleanup: keep only the last 10 log files
+        log_files = sorted(
+            [f for f in os.listdir(log_dir) if f.startswith("WebScraper_") and f.endswith(".log")],
+            key=lambda x: os.path.getmtime(os.path.join(log_dir, x))
+        )
+        for old_log in log_files[:-10]:  # Keep the last 10
+            os.remove(os.path.join(log_dir, old_log))
+
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
         # Console Handler
