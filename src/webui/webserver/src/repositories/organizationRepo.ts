@@ -120,7 +120,11 @@ async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], 
 
 export async function insertCsvOrganizations(organizations: CsvOrganizationRow[]) {
   console.log("insert")
-  await knex("organizations").insert(await convertCsvOrganizationsToPartials(organizations, "add"));
+  // Insert and ignore rows that violate constraints (e.g., unique)
+  await knex("organizations")
+    .insert(await convertCsvOrganizationsToPartials(organizations, "add"))
+    .onConflict() // no columns = ignore all conflicts
+    .ignore();
 }
 
 export async function deleteOrganization(id: number): Promise<boolean> {
