@@ -59,12 +59,12 @@ class WebScraper:
             self.cur = self.conn.cursor()
             self.cur.execute("SELECT version();")
             self.logger.info(f"DB Connection: {self.cur.fetchone()}")
+            sql = "INSERT INTO updates VALUES (%s, %s);"
+            self.cur.execute(sql, (self.org.id, "In Progress",))
+            self.conn.commit()
         else:
             self.logger.info("Test Mode: No SQS or Database Connection")
 
-        sql = "INSERT INTO updates VALUES (%s, %s);"
-        self.cur.execute(sql, (self.org.id, "In Progress",))
-        self.conn.commit()
         response = await self.driver.precheck(self.org.url)
 
         if response is None:
@@ -269,7 +269,7 @@ class WebScraper:
         # If so: create a recursive call to crawl the url
         for link in soup.find_all('a', href=True):
             href = link['href']
-            fullUrl = urljoin(self.org.url, href)
+            fullUrl = urljoin(self.org.finalUrl, href)
             normalizedFullUrl = utils.normalize_url(fullUrl)
             # self.logger.info(f"Found Link: {fullUrl}")
             # if full_url.startswith(self.org.url):
