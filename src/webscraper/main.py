@@ -99,8 +99,7 @@ async def process_message(message):
     except Exception as e:
         logger.error(f"Error processing message: {e}")
     finally:
-        pass
-        # await delete_message(message["ReceiptHandle"])
+        await delete_message(message["ReceiptHandle"])
 
 
 async def main_loop():
