@@ -46,8 +46,6 @@ url_examples = [
     "https://www.centerforperformingarts.org/",
     "http://www.stutelage.com",
     "http://www.wisconsinart.org/",
-    #below, urls are commented out
-    '''
     "http://www.beltonparks.org/",
     "https://www.minneapolisparks.org/activities-events/nature-activities/",
     "https://urbanecologycenter.org/",
@@ -196,6 +194,5 @@ url_examples = [
     "http://www.magiktheatre.org/",
     "https://www.mygym.com/bellevue",
     "https://eckerts.com/",
-    "https://memphisinmay.org/",
-    '''
+    "https://memphisinmay.org/"
 ]
