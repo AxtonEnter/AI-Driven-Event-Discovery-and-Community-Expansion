@@ -8,7 +8,7 @@ import { useLazyQuery, useMutation } from '@apollo/client';
 import { GET_EVENTS } from './queries/eventQueries.js';
 import RequestWrapper from './common/RequestWrapper.js';
 import { CsvUpload } from './common/csv/CsvUpload.js';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IMPORT_ORGANIZATION_CSV } from './queries/organizationQueries.js';
 
 interface TabPanelProps {
@@ -48,8 +48,14 @@ function Events() {
     setSelectedEvents((prev: EventItem[]) =>
       prev.includes(event) ? prev.filter((e) => e !== event) : [...prev, event]
     );
-    setImportSnackbarOpen(true);
   }
+
+  // Show Snackbar when importOrgCsvResult.data changes (i.e., import finishes successfully)
+  useEffect(() => {
+    if (importOrgCsvResult.data) {
+      setImportSnackbarOpen(true);
+    }
+  }, [importOrgCsvResult.data]);
 
   return (
     <Page>

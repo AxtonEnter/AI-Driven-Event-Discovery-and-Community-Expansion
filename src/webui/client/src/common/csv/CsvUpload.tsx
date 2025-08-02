@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 
 type CsvUploadProps = {
     handleUpload: (file: File) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result: MutationResult<any>;
 }
 
