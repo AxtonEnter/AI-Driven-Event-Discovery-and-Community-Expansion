@@ -11,6 +11,12 @@ import psycopg2
 import boto3
 import json
 import time
+import zlib
+import base64
+
+# For count of each labeled text
+event_count = 0
+non_event_count = 0
 
 # Track overall metrics
 total_messages = 0
@@ -29,7 +35,7 @@ messages_this_minute = []
 current_minute = int(time.time() // 60)
 
 # Replace with queue URL
-QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/main-queue"
+QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/563583517916/page-data"
 
 # Initialize SQS client
 sqs = boto3.client("sqs", region_name="us-east-1")
@@ -51,55 +57,49 @@ def receive_sqs_message():
         messages = response.get("Messages", [])
         if messages:
             msg = messages[0]
-            #receipt_handle = msg["ReceiptHandle"] # commented out to delete message from SNS queue
+            receipt_handle = msg["ReceiptHandle"] # commented out to delete message from SNS queue
             body = msg["Body"]
 
             try:
-                payload_preview = json.loads(body)
-                if isinstance(payload_preview, list) and len(payload_preview) == 3:
-                    short_text = payload_preview[2][:150] + "..."
-                    print(f"\nRaw SQS Message Body Preview:\n[{payload_preview[0]}, \"{payload_preview[1]}\", \"{short_text}\]\n")
-                elif isinstance(payload_preview, list) and len(payload_preview) == 4:
-                    short_text = payload_preview[2][:150] + "..."
-                    print(f"\nRaw SQS Message Body Preview:\n[{payload_preview[0]}, \"{payload_preview[1]}\", \"{short_text}\", \"{payload_preview[3][:5]}...\"]\n")
-                else:
-                    print("\nRaw SQS Message Body:\n", body)
-            except Exception:
-                print("\nRaw SQS Message Body:\n", body)
+                # Step 1: base64 decode
+                compressed_bytes = base64.b64decode(body)
 
-            try:
-                payload = json.loads(body)
-                print("\n[ Parsed SQS message as list ]")
-            except json.JSONDecodeError:
-                print("Failed to parse message JSON")
-                return None
-            
-            # Confirm expected format
-            if not isinstance(payload, list) or len(payload) != 3:
-                print("Message is not a list with 3 elements.")
-            elif not isinstance(payload, list) or len(payload) != 4:
-                print("Message is not a list with 4 elements.")
-            elif not isinstance(payload, list) or len(payload) < 3:
-                print("Message is a list with less than 3 elements.")
-            else:
-                print("Message is a list with more than 4 elements")
+                # Step 2: zlib decompress
+                decompressed_json = zlib.decompress(compressed_bytes).decode("utf-8")
+
+                # Step 3: parse JSON
+                payload = json.loads(decompressed_json)
+                print("Successfully decompressed and parsed SQS message.")
+
+            except Exception as e:
+                print("Failed to decode, decompress, or parse message:", e)
                 return None
 
-            org_id, url, html, image = payload
-            print("\nExtracted SNS Payload:")
-            print(f"- org_id: {org_id}")
-            print(f"- url: {url}")
-            print(f"- html: {html[:150]}...")  # Limit print length
-            print(f"- image_url: {image[:5]}...\n")
+            # Show full payload
+            #print("\nFull decompressed payload:")
+            #print(json.dumps(payload, indent=2))  # nicely formatted JSON
 
-            # return the message and receipt handle for processing/deletion
+            # Extract expected keys
+            user_id = payload.get("userId")
+            org_id = payload.get("orgId")
+            url = payload.get("url")
+            html = payload.get("html")
+            images = payload.get("imageUrls", [])
+
+            if None in (user_id, org_id, url, html, images):
+                print("Missing one or more required fields.")
+                return None
+
+            print(f"\nExtracted Payload:\n- userId: {user_id}\n- orgId: {org_id}\n- url: {url}\n- html: {html[:100]}...\n- imageUrls: {images[:5]}\n")
+
             return {
-                "org_id": org_id,
+                "userId": user_id,
+                "orgId": org_id,
                 "url": url,
                 "html": html,
+                "imageUrls": images,
                 "sqs_message": msg,
-                "image_url": image
-                #"receipt_handle": receipt_handle # uncomment this to delete the message from SNS queue
+                "receipt_handle": receipt_handle
             }
 
         else:
@@ -125,7 +125,7 @@ def extract_domain_as_title(url):
     except Exception:
         return None
 
-def insert_event_to_db(org_id, url, text, html):
+def insert_event_to_db(org_id, url, text, html, user_id, images):
     try:
         conn = psycopg2.connect(
             host=DB_HOST,
@@ -146,9 +146,11 @@ def insert_event_to_db(org_id, url, text, html):
                 statuschangedat,
                 status,
                 rejectedreason,
-                organization
+                "user",
+                organization,
+                image_list
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
 
         now = datetime.now()
@@ -163,7 +165,9 @@ def insert_event_to_db(org_id, url, text, html):
             now,            # statuschangedat
             0,              # status = 1 (event-related)
             None,           # rejectedreason
-            org_id          # from SQS
+            user_id,        # user
+            org_id,         # from SQS
+            images          # image list
         ))
 
         conn.commit()
@@ -252,6 +256,11 @@ while True:
     # Accuracy tracking
     if pred_label == true_label:
         correct_predictions += 1
+        
+    if pred_label == 1:
+        event_count += 1
+    else:
+        non_event_count += 1
 
     accuracy = correct_predictions / total_messages
     """
@@ -263,12 +272,15 @@ while True:
     print(f"Confidence: {confidence:.2f}")
     print(f"Total Processing Time: {message_duration:.3f} sec")
     print(f"Model Prediction Processing Time: {prediction_duration:.3f} sec")
-    print(f"Running Accuracy (Simulated): {accuracy:.2%} ({correct_predictions}/{total_messages})")
     if event_confidences:
         print(f"Avg EVENT Confidence: {np.mean(event_confidences):.2f}")
     if non_event_confidences:
         print(f"Avg NON-EVENT Confidence: {np.mean(non_event_confidences):.2f}")
     print(f"Avg Processing Time: {np.mean(processing_times):.3f} sec/message")
+    print(f"Classified EVENT count: {event_count}")
+    print(f"Classified NON-EVENT count: {non_event_count}")
+    print(f"EVENT % out of total: {(event_count / total_messages * 100):.2f}%")
+    print(f"Running Accuracy (Simulated): {accuracy:.2%} ({correct_predictions}/{total_messages})")
 
     # Simulate true label for demonstration purposes
     true_labels = [1]  # You can change this to 0 or fetch real labels during evaluation
@@ -276,17 +288,19 @@ while True:
     if pred_label == 1:
         print("\n**** Majority of blocks are EVENT-RELATED. SENDING full text block to database... ***")
         insert_event_to_db(
-            org_id=17, #change to ' sqs_msg["org_id"] ' when the org_id is accurate from the SQS_msg
+            user_id=sqs_msg["userId"],
+            org_id=sqs_msg["orgId"],
             url=sqs_msg["url"],
             text=text_input,
-            html=html_input
+            html=html_input,
+            images=sqs_msg["imageUrls"]
         )
     else:
         print("\n****No strong event-related presence detected. Full text block not returned.****")
         
     # Delete message from SQS after processing
     # uncomment below to delete the messages from the SNS queue that have already been processed
-    """
+    
     try:
         sqs.delete_message(
             QueueUrl=QUEUE_URL,
@@ -295,7 +309,6 @@ while True:
         print("Deleted processed message from SQS.\n")
     except Exception as e:
         print(f"Failed to delete message from SQS: {e}")
-    """
-
+    
     print("================ End of Prediction Summary =============================================================\n")
     print("\n--- Waiting for next SQS message... ---")
