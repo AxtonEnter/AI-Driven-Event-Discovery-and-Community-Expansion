@@ -4,6 +4,8 @@ class Org:
     def __init__(self, id: int, url: str, eventurl: str = None):
         self.id = id
         self.url = url
+        self.finalUrl = None
+        self.governmentSite = False
         self.normalizedUrl = utils.normalize_url(url)
         self.eventurl = eventurl
 

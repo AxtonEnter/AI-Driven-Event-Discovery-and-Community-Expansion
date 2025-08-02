@@ -12,11 +12,12 @@ from datetime import datetime
 from org import Org
 
 class scraperManager:
-    def __init__(self, concurrentScrapers: int, orgs: list[Org], proxyEnable: bool = True, testMode: bool = False):
+    def __init__(self, concurrentScrapers: int, orgs: list[Org], userId: str, proxyEnable: bool = True, testMode: bool = False):
         """
         Initialize the scraper manager with a list of organizations and an optional proxy.
         Test mode is used for debugging purposes, does not use any cloud systems.
         """
+        self.userId = userId
         self.orgs = orgs
         self.proxyEnable = proxyEnable
         self.semaphore = asyncio.Semaphore(concurrentScrapers)
@@ -48,10 +49,7 @@ class scraperManager:
 
         for org in orgs:
             # LOGGER SETUP
-            parsed_url = urlparse(org.url)
-            domain = parsed_url.netloc.replace("www.", "")
-            safe_name = re.sub(r'[^\w\-_.]', '_', domain)  # Just in case
-            logger_name = f"Scraper[{org.url}]"
+            logger_name = f"ORG[{org.id}]"
 
             individualLogger = logging.getLogger(logger_name)
             individualLogger.setLevel(logging.DEBUG)
@@ -64,26 +62,37 @@ class scraperManager:
                 self.driver = PlaywrightDriver(individualLogger, headless=True, proxy=proxy)
             else:
                 self.driver = PlaywrightDriver(individualLogger, headless=True)
-            scraper = WebScraper(driver=self.driver, org=org, maxPages=10, sleepTime=1, logger=individualLogger, testMode=testMode)
+            scraper = WebScraper(driver=self.driver, org=org, userId=self.userId, maxPages=10, sleepTime=1, logger=individualLogger, testMode=testMode)
             self.scrapers.append(scraper)
 
         self.logger.info(f"Scraper Manager Initialized, concurrentScrapers: {concurrentScrapers}, orgs: {orgs}, org count: {len(orgs)}, proxy: {self.proxyEnable}")
 
 
-    async def crawlWithSemaphore(self, semaphore, scraper):
-        """Ensures only X scrapers run at a time using a semaphore."""
-        async with semaphore:  # Limits number of concurrent scrapers
-            # return await scraper.crawlMultiEventPage()
-            return await scraper.crawlSite()
-    
     async def concurrentCrawl(self):
-        await asyncio.gather(*(scraper.start() for scraper in self.scrapers))
+        async def crawlTask(scraper):
+            async with self.semaphore:
+                startResponse = await scraper.start()
 
-        async def crawlAndClose(scraper:WebScraper):
-            await self.crawlWithSemaphore(self.semaphore, scraper)
-            await scraper.close()
+                if startResponse is None:
+                    self.logger.error(f"Precheck failed for org {scraper.org.id}, skipping.")
+                    await scraper.close()
+                    return
 
-        await asyncio.gather(*(crawlAndClose(scraper) for scraper in self.scrapers))
+                if startResponse == 404:
+                    self.logger.error(f"Invalid URL for org {scraper.org.id}: {scraper.org.url}")
+                    await scraper.close()
+                    return
+                
+
+                await scraper.crawlSite()
+                await scraper.close()
+
+        # Create tasks lazily with generator expression (no coroutine created yet)
+        tasks = (crawlTask(scraper) for scraper in self.scrapers)
+
+        # Now asyncio.gather will create & run coroutines *one by one* respecting semaphore
+        await asyncio.gather(*tasks)
+
 
 
     async def crawlMultiWithSemaphore(self, semaphore, scraper):

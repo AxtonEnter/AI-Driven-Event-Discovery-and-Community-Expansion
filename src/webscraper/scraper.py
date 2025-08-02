@@ -1,17 +1,17 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlunparse, urlparse
 import zlib
+import base64
 import asyncio
 import utils
 import logging
 import boto3
 import psycopg2
 import json
-from collections import Counter
 import hashlib
 from org import Org
 
-QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/522167229147/page-data"
+PAGE_DATA_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/563583517916/page-data"
 
 DB_HOST = "test-database-jdb.c8v60oyuezl3.us-east-1.rds.amazonaws.com"
 DB_NAME = "postgres"
@@ -21,8 +21,9 @@ DB_PORT = 5432
 
 
 class WebScraper:
-    def __init__(self, driver, org: Org, logger: logging.Logger, maxPages=100, sleepTime=1, testMode: bool = False):
+    def __init__(self, driver, org: Org, userId: str, logger: logging.Logger, maxPages=100, sleepTime=1, testMode: bool = False):
         self.driver = driver
+        self.userId = userId
         self.org = org
         self.driver.rootUrl = self.org.normalizedUrl
         self.maxPages = maxPages
@@ -34,11 +35,18 @@ class WebScraper:
 
         self.testMode = testMode
 
-        # SNS Link
-        if not testMode:
+        self.logger.info(f"Initialized Scraper")
+    
+    async def start(self):
+        """
+        Start the Playwright browser for this scraper.
+        """
+        await self.driver.start()
+
+        self.logger.info(f"Starting Scraper")
+        if not self.testMode:
+            # SQS Link
             self.sqs = boto3.client('sqs', region_name='us-east-1')
-            # for queue in self.sqs.queues.all():
-            #     print(queue.url)
 
             # Database Link
             self.conn = psycopg2.connect(
@@ -54,13 +62,19 @@ class WebScraper:
         else:
             self.logger.info("Test Mode: No SQS or Database Connection")
 
-        self.logger.info(f"Initialized Scraper")
-    
-    async def start(self):
-        """
-        Start the Playwright browser for this scraper.
-        """
-        await self.driver.start()
+        sql = "INSERT INTO updates VALUES (%s, %s);"
+        self.cur.execute(sql, (self.org.id, "In Progress",))
+        self.conn.commit()
+        response = await self.driver.precheck(self.org.url)
+
+        if response is None:
+            self.logger.error(f"Precheck failed for org {self.org.id}, skipping.")
+        elif response == 404:
+            self.logger.error(f"Invalid URL for org {self.org.id}: {self.org.url}")
+        else:
+            self.org.finalUrl = response
+
+        return response
     
     async def getHtml(self, url):
         """
@@ -111,8 +125,11 @@ class WebScraper:
             self.logger.info(f"Starting Crawl")
         
         if url is None:
-            url = self.org.url
-        
+            if self.org.finalUrl is None:
+                url = self.org.url
+            else:
+                url = self.org.finalUrl
+
         # Normalize URL
         normalizedUrl = utils.normalize_url(url)
         # self.logger.info(f"Original URL: {url}")
@@ -151,6 +168,15 @@ class WebScraper:
 
         # Connect to page and return html
         html = await self.getHtml(url)
+
+        if html is False:
+            self.logger.error(f"Failed to get HTML for {url} - IP Banned")
+            return []
+
+        if html is None:
+            self.logger.warning(f"Failed to get HTML for {url}")
+            return []
+        
         soup = await self.getSoup(html)
         
         if soup is None:
@@ -176,45 +202,68 @@ class WebScraper:
         # print(images)
 
         if not self.testMode:
-            messageRequired = False
-            # Check page hash
-            textHash = utils.hashText(text)
-            sql = "SELECT * FROM url_hashes WHERE url=%s"
-            self.cur.execute(sql, (url,))
-            response = self.cur.fetchone()
+            messageRequired = True  # Always send to model for testing
+            # messageRequired = False
+            # # Check page hash
+            # textHash = utils.hashText(text)
+            # sql = "SELECT * FROM url_hashes WHERE url=%s"
+            # self.cur.execute(sql, (url,))
+            # response = self.cur.fetchone()
 
-            if response == None or response == []: # New Page (No Hash)
-                self.logger.info("New Page - No Hash Stored: Sending to Model")
-                messageRequired = True
-                sql = "INSERT INTO url_hashes VALUES (%s, %s);"
-                self.cur.execute(sql, (url, textHash,))
-                self.conn.commit()
-            else:
-                if response[1] != textHash: # Page has changed
-                    self.logger.info("Page has changed - Updating Hash: Sending to Model")
-                    messageRequired = True
-                    sql = "UPDATE url_hashes SET textHash = %s WHERE url = %s;"
-                    self.cur.execute(sql, (textHash, url,))
-                    self.conn.commit()
+            # if response == None or response == []: # New Page (No Hash)
+            #     self.logger.info("New Page - No Hash Stored: Sending to Model")
+            #     messageRequired = True
+            #     sql = "INSERT INTO url_hashes VALUES (%s, %s);"
+            #     self.cur.execute(sql, (url, textHash,))
+            #     self.conn.commit()
+            # else:
+            #     if response[1] != textHash: # Page has changed
+            #         self.logger.info("Page has changed - Updating Hash: Sending to Model")
+            #         messageRequired = True
+            #         sql = "UPDATE url_hashes SET textHash = %s WHERE url = %s;"
+            #         self.cur.execute(sql, (textHash, url,))
+            #         self.conn.commit()
 
-                    # Page has changed (send to event queue)
-                    compressed = zlib.compress(text.encode('utf-8'), level=-1)
-                    pass
-                else: # Page has not changed
-                    self.logger.info("Page has not changed")
-                    pass
+            #         # Page has changed (send to event queue)
+            #         # compressed = zlib.compress(text.encode('utf-8'), level=-1)
+            #         pass
+            #     else: # Page has not changed
+            #         self.logger.info("Page has not changed")
+            #         pass
             
             if messageRequired:
-                # Send SNS Message
-                messageInfo = [self.org.id, url, html, imageUrls]
-                message = json.dumps(messageInfo)
-                self.logger.info(f"Message: [OrgId:{messageInfo[0]}, URL:{messageInfo[1]}, HTML:{messageInfo[2][:50]}..., Images:{len(messageInfo[3])}]")
-                response = self.sqs.send_message(
-                    QueueUrl=QUEUE_URL,
-                    MessageBody=message
-                )
-                self.logger.info(f"Message Sent: {response['MessageId']}")
+                # Send SNS 
+                messageInfo = {
+                    "userId": self.userId,
+                    "orgId": self.org.id,
+                    "url": url,
+                    "html": html,
+                    "imageUrls": imageUrls
+                }
 
+                # Convert to JSON and compress using zlib
+                jsonStr = json.dumps(messageInfo)
+                compressedBytes = zlib.compress(jsonStr.encode("utf-8"))
+
+                # SQS only accepts string data, so base64-encode the compressed bytes
+                compressedBase64 = base64.b64encode(compressedBytes).decode("utf-8")
+                
+                self.logger.info(f"Compressed Message Size: {len(compressedBase64)} bytes")
+                if len(compressedBase64) > 262144:  # 256 KB limit for SQS
+                    self.logger.warning("Message size exceeds SQS limit, skipping.")
+                    return []
+                self.logger.info(f"Message: [UserId:{messageInfo["userId"]}, OrgId:{messageInfo["orgId"]}, URL:{messageInfo["url"]}, HTML:{messageInfo["html"][:50]}..., Images:{len(messageInfo["imageUrls"])}]")
+                try:
+                    # Send message to SQS
+                    response = self.sqs.send_message(
+                        QueueUrl=PAGE_DATA_QUEUE_URL,
+                        MessageBody=compressedBase64
+                    )
+                    self.logger.info(f"Message Sent: {response['MessageId']}")
+                except Exception as e:
+                    self.logger.error(f"Failed to send message to SQS: {e}")
+                    return []
+                
 
         # For each link, convert partial urls to full and check if its on root site
         # If so: create a recursive call to crawl the url
@@ -222,7 +271,7 @@ class WebScraper:
             href = link['href']
             fullUrl = urljoin(self.org.url, href)
             normalizedFullUrl = utils.normalize_url(fullUrl)
-            # self.logger.info(f"Found Link: {full_url}")
+            # self.logger.info(f"Found Link: {fullUrl}")
             # if full_url.startswith(self.org.url):
             #     self.logger.info(f"Link is on the same site: {self.org.url}")
 
@@ -353,9 +402,10 @@ class WebScraper:
         await self.driver.close()
 
         if not self.testMode:
-            # sql = "INSERT INTO updates VALUES (%s, %s);"
-            # self.cur.execute(sql, (self.org.id, "DONE",))
-            # self.conn.commit()
+            sql = "INSERT INTO updates VALUES (%s, %s);"
+            self.cur.execute(sql, (self.org.id, "Done",))
+            self.conn.commit()
+            
             self.cur.close()
             self.conn.close()
             self.logger.info("Closed Database Connection")
