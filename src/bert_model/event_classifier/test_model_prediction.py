@@ -16,7 +16,7 @@ model = keras_nlp.models.BertClassifier.from_preset(
 )
 
 # Loads the weights
-model.load_weights("saved_bert_model").expect_partial()
+model.load_weights("saved_bert_model_weights").expect_partial()
 '''
  added 'expect_partial() to get rid of warnings it will give warnings
  which is fine because I'm not continously training the model.

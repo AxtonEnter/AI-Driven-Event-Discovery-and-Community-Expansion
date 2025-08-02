@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+from urllib.parse import urlparse
 import zlib
 import asyncio
 import utils
@@ -139,39 +140,50 @@ class WebScraper:
         return visited
     
     """
-    New method specifically for getting data to train the model
+    New methods specifically for getting data to train the model
     """
-    async def extractStructuredEventBlocks(self, soup):
+    async def extractEventPageTextFromUrl(self, url, soup):
         """
-        Extract structured event-related sections from known HTML patterns (e.g., .entry, .event).
-        Returns:
-            (event_blocks, full_page_text)
+        Return full page text if the URL path suggests it's an event page.
+        Prioritizes exact match in first path segment, then partial keyword presence.
         """
-        event_selectors = [
-            ".entry",               # Lucky Ladd, WordPress common
-            ".event",               # Generic catch-all
-            ".event-item",          # Calendar plugins
-            ".event-block",         # Custom CMS
-            ".event-container",     # Another variation
-            ".event-listing",
-            "[id*=event]",
-            "[class*=event]"
-        ]
+        event_keywords = ['event', 'calendar', 'schedule', 'activities', 'upcoming', 'events', 'calendars']
+        parsed = urlparse(url.lower())
+        path_segments = [seg for seg in parsed.path.strip("/").split("/") if seg]
 
-        event_blocks = []
-        seen_texts = set()
+        if not path_segments:
+            return None
 
-        for selector in event_selectors:
-            matches = soup.select(selector)
-            for match in matches:
-                block_text = match.get_text(separator=" ", strip=True)
-                # This if statement will help to filter out very short or duplicate blocks
-                if block_text and block_text not in seen_texts and len(block_text.split()) >= 10:
-                    seen_texts.add(block_text)
-                    event_blocks.append(block_text)
+        first_segment = path_segments[0]
 
-        full_text = await self.soupToText(soup)
-        return event_blocks, full_text
+        # 1. Exact match
+        if first_segment in event_keywords:
+            return await self.soupToText(soup)
+
+        # 2. Keyword exists inside first segment
+        if any(keyword in first_segment for keyword in event_keywords):
+            return await self.soupToText(soup)
+
+        return None
+
+    
+    async def extractNonEventPageTextFromUrl(self, url, soup):
+        """
+        Returns full page text only if the first URL path segment exactly matches a known non-event keyword.
+        """
+        non_event_keywords = ['about-us', 'contact-us', 'faq', 'contact', 'volunteer', 'our-mission', 'support', 'history', 'policies', 'news', 'sponsor', 'blog']
+        parsed = urlparse(url.lower())
+        path_segments = [seg for seg in parsed.path.strip("/").split("/") if seg]
+
+        if not path_segments:
+            return None
+
+        first_segment = path_segments[0]
+
+        if first_segment in non_event_keywords:
+            return await self.soupToText(soup)
+
+        return None
     
     async def crawlMultiEventPage(self, url):
         """
@@ -193,9 +205,7 @@ class WebScraper:
             return []
         else:
             # Update Page Hash in DB
-            pass
-        
-        
+            pass    
 
     async def close(self):
         """Close the browser when done."""
