@@ -1,6 +1,7 @@
 # from playwright.sync_api import sync_playwright
 from playwright.async_api import async_playwright
 from proxy import OxylabsProxy
+import utils
 import logging
 import time
 import asyncio
@@ -39,13 +40,15 @@ class PlaywrightDriver:
     
     async def interceptRequest(self, route, request, targetUrl):
         """Block specific resource types from loading. Also blocks routing to other pages."""
-        if request.url == targetUrl:
+        normalizedUrl = utils.normalize_url(request.url)
+        normalizedTargetUrl = utils.normalize_url(targetUrl)
+        if normalizedUrl == normalizedTargetUrl:
             if request.resource_type in ["image", "stylesheet", "font", "media"]:
                 await route.abort()  # Block unwanted resource types
             else:
                 await route.continue_()  # Allow other requests for the main URL
         else:
-            # print("Intercepted: " + str(request.url))
+            # self.logger.info(f"Intercepted: {normalizedUrl}")
             await route.abort()  # Block all other domains
 
     async def rotateProxy(self):
@@ -102,14 +105,15 @@ class PlaywrightDriver:
 
             # Ensure its been at least 1 second since last body request.
             currentTime = time.time()
-            timeElaspsed = currentTime - self.lastRequestTime
-            if (timeElaspsed < 1):
-                asyncio.sleep(1 - timeElaspsed)
+            timeElapsed = currentTime - self.lastRequestTime
+            if (timeElapsed < 1):
+                await asyncio.sleep(1 - timeElapsed)
+                timeElapsed = 1
             self.lastRequestTime = currentTime
 
             # Navigate to the page
-            self.logger.info(f"Requesting Body. Last Request: {timeElaspsed:.1f} Sec")
-            responseBody = await self.page.goto(url, timeout=20000, wait_until="networkidle")
+            self.logger.info(f"Requesting Body. Last Request: {timeElapsed:.1f} Sec")
+            responseBody = await self.page.goto(url, wait_until="domcontentloaded", timeout=20000)
             self.logger.info("Body Done")
             # try:
             #     await self.page.wait_for_load_state("load", timeout=10000)  # Wait for load trigger

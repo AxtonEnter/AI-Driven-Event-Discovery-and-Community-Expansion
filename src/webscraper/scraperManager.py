@@ -2,6 +2,7 @@ import asyncio
 from proxy import OxylabsProxy
 from driver import PlaywrightDriver
 from scraper import WebScraper
+import utils
 import logging
 from urllib.parse import urlparse
 import re
@@ -11,9 +12,10 @@ from datetime import datetime
 from org import Org
 
 class scraperManager:
-    def __init__(self, concurrentScrapers: int, orgs: list[Org], proxyEnable: bool = False):
+    def __init__(self, concurrentScrapers: int, orgs: list[Org], proxyEnable: bool = True, testMode: bool = False):
         """
         Initialize the scraper manager with a list of organizations and an optional proxy.
+        Test mode is used for debugging purposes, does not use any cloud systems.
         """
         self.orgs = orgs
         self.proxyEnable = proxyEnable
@@ -49,7 +51,7 @@ class scraperManager:
             parsed_url = urlparse(org.url)
             domain = parsed_url.netloc.replace("www.", "")
             safe_name = re.sub(r'[^\w\-_.]', '_', domain)  # Just in case
-            logger_name = f"Scraper[{safe_name}]"
+            logger_name = f"Scraper[{org.url}]"
 
             individualLogger = logging.getLogger(logger_name)
             individualLogger.setLevel(logging.DEBUG)
@@ -62,7 +64,7 @@ class scraperManager:
                 self.driver = PlaywrightDriver(individualLogger, headless=True, proxy=proxy)
             else:
                 self.driver = PlaywrightDriver(individualLogger, headless=True)
-            scraper = WebScraper(driver=self.driver, org=org, maxPages=10, sleepTime=1, logger=individualLogger)
+            scraper = WebScraper(driver=self.driver, org=org, maxPages=10, sleepTime=1, logger=individualLogger, testMode=testMode)
             self.scrapers.append(scraper)
 
         self.logger.info(f"Scraper Manager Initialized, concurrentScrapers: {concurrentScrapers}, orgs: {orgs}, org count: {len(orgs)}, proxy: {self.proxyEnable}")

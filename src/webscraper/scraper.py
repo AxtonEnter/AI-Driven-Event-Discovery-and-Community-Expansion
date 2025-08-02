@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlunparse, urlparse
 import zlib
 import asyncio
 import utils
@@ -21,9 +21,10 @@ DB_PORT = 5432
 
 
 class WebScraper:
-    def __init__(self, driver, org: Org, logger: logging.Logger, maxPages=100, sleepTime=1):
+    def __init__(self, driver, org: Org, logger: logging.Logger, maxPages=100, sleepTime=1, testMode: bool = False):
         self.driver = driver
         self.org = org
+        self.driver.rootUrl = self.org.normalizedUrl
         self.maxPages = maxPages
         self.sleepTime = sleepTime
         self.visited = set()
@@ -31,22 +32,27 @@ class WebScraper:
         self.emails = []
         self.logger = logger
 
-        # SNS Link
-        self.sqs = boto3.client('sqs', region_name='us-east-1')
-        # for queue in self.sqs.queues.all():
-        #     print(queue.url)
+        self.testMode = testMode
 
-        # Database Link
-        self.conn = psycopg2.connect(
-            host=DB_HOST,
-            database=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            port=DB_PORT
-        )
-        self.cur = self.conn.cursor()
-        self.cur.execute("SELECT version();")
-        self.logger.info(f"DB Connection: {self.cur.fetchone()}")
+        # SNS Link
+        if not testMode:
+            self.sqs = boto3.client('sqs', region_name='us-east-1')
+            # for queue in self.sqs.queues.all():
+            #     print(queue.url)
+
+            # Database Link
+            self.conn = psycopg2.connect(
+                host=DB_HOST,
+                database=DB_NAME,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                port=DB_PORT
+            )
+            self.cur = self.conn.cursor()
+            self.cur.execute("SELECT version();")
+            self.logger.info(f"DB Connection: {self.cur.fetchone()}")
+        else:
+            self.logger.info("Test Mode: No SQS or Database Connection")
 
         self.logger.info(f"Initialized Scraper")
     
@@ -106,17 +112,26 @@ class WebScraper:
         
         if url is None:
             url = self.org.url
+        
+        # Normalize URL
+        normalizedUrl = utils.normalize_url(url)
+        # self.logger.info(f"Original URL: {url}")
+        # self.logger.info(f"Cleaned URL: {cleaned_url}")
+        # url = cleaned_url
 
         # Page Limit Check
         if len(visited) >= self.maxPages:
             return []
         
         # Return on already visited url (before attempting to connect)
-        if url in visited:  
+        if normalizedUrl in visited:
             return []
         
-        # Debug
+        # # Debug
+        # self.logger.info(f"Original URL: {url}")
+        # self.logger.info(f"Cleaned URL: {cleaned_url}")
         self.logger.info(f"Visiting: {url}")
+        # url = cleaned_url
         
         # Check if URL contains date and disallow past dates
         dates = utils.stringDateCheck(url)
@@ -131,7 +146,7 @@ class WebScraper:
                 self.logger.info("URL Contains Current or Future Date")
 
         # Add url to visited
-        visited.add(url)
+        visited.add(normalizedUrl)
         self.visitedCount += 1
 
         # Connect to page and return html
@@ -155,58 +170,65 @@ class WebScraper:
                     break
 
         self.logger.info(f"Found {len(imageUrls)} image(s) on the page.")
+        if len(imageUrls) > 10:
+            self.logger.warning(f"Too many images on page, limiting to 10.")
+            imageUrls = imageUrls[:10]
         # print(images)
 
-        messageRequired = False
+        if not self.testMode:
+            messageRequired = False
+            # Check page hash
+            textHash = utils.hashText(text)
+            sql = "SELECT * FROM url_hashes WHERE url=%s"
+            self.cur.execute(sql, (url,))
+            response = self.cur.fetchone()
 
-        # Check page hash
-        textHash = utils.hashText(text)
-        sql = "SELECT * FROM url_hashes WHERE url=%s"
-        self.cur.execute(sql, (url,))
-        response = self.cur.fetchone()
-
-        if response == None or response == []: # New Page (No Hash)
-            self.logger.info("New Page - No Hash Stored: Sending to Model")
-            messageRequired = True
-            sql = "INSERT INTO url_hashes VALUES (%s, %s);"
-            self.cur.execute(sql, (url, textHash,))
-            self.conn.commit()
-        else:
-            if response[1] != textHash: # Page has changed
-                self.logger.info("Page has changed - Updating Hash: Sending to Model")
+            if response == None or response == []: # New Page (No Hash)
+                self.logger.info("New Page - No Hash Stored: Sending to Model")
                 messageRequired = True
-                sql = "UPDATE url_hashes SET textHash = %s WHERE url = %s;"
-                self.cur.execute(sql, (textHash, url,))
+                sql = "INSERT INTO url_hashes VALUES (%s, %s);"
+                self.cur.execute(sql, (url, textHash,))
                 self.conn.commit()
+            else:
+                if response[1] != textHash: # Page has changed
+                    self.logger.info("Page has changed - Updating Hash: Sending to Model")
+                    messageRequired = True
+                    sql = "UPDATE url_hashes SET textHash = %s WHERE url = %s;"
+                    self.cur.execute(sql, (textHash, url,))
+                    self.conn.commit()
 
-                # Page has changed (send to event queue)
-                compressed = zlib.compress(text.encode('utf-8'), level=-1)
-                pass
-            else: # Page has not changed
-                self.logger.info("Page has not changed")
-                pass
-        
-        if messageRequired:
-            # Send SNS Message
-            messageInfo = [self.org.id, url, html, imageUrls]
-            message = json.dumps(messageInfo)
-            self.logger.info(f"Message: [OrgId:{messageInfo[0]}, URL:{messageInfo[1]}, HTML:{messageInfo[2][:50]}..., Images:{len(messageInfo[3])}]")
-            response = self.sqs.send_message(
-                QueueUrl=QUEUE_URL,
-                MessageBody=message
-            )
-            self.logger.info(f"Message Sent: {response['MessageId']}")
+                    # Page has changed (send to event queue)
+                    compressed = zlib.compress(text.encode('utf-8'), level=-1)
+                    pass
+                else: # Page has not changed
+                    self.logger.info("Page has not changed")
+                    pass
+            
+            if messageRequired:
+                # Send SNS Message
+                messageInfo = [self.org.id, url, html, imageUrls]
+                message = json.dumps(messageInfo)
+                self.logger.info(f"Message: [OrgId:{messageInfo[0]}, URL:{messageInfo[1]}, HTML:{messageInfo[2][:50]}..., Images:{len(messageInfo[3])}]")
+                response = self.sqs.send_message(
+                    QueueUrl=QUEUE_URL,
+                    MessageBody=message
+                )
+                self.logger.info(f"Message Sent: {response['MessageId']}")
 
 
         # For each link, convert partial urls to full and check if its on root site
         # If so: create a recursive call to crawl the url
         for link in soup.find_all('a', href=True):
             href = link['href']
-            full_url = urljoin(self.org.url, href)
+            fullUrl = urljoin(self.org.url, href)
+            normalizedFullUrl = utils.normalize_url(fullUrl)
+            # self.logger.info(f"Found Link: {full_url}")
+            # if full_url.startswith(self.org.url):
+            #     self.logger.info(f"Link is on the same site: {self.org.url}")
 
-            if full_url.startswith(self.org.url) and full_url not in visited:
-                await self.crawlSite(full_url, visited)
-        
+            if normalizedFullUrl.startswith(self.org.normalizedUrl) and normalizedFullUrl not in visited:
+                await self.crawlSite(fullUrl, visited)
+
         return visited
     
     """
@@ -329,7 +351,13 @@ class WebScraper:
     async def close(self):
         """Close the browser when done."""
         await self.driver.close()
-        # sql = "INSERT INTO updates VALUES (%s, %s);"
-        # self.cur.execute(sql, (self.org.id, "DONE",))
-        # self.conn.commit()
+
+        if not self.testMode:
+            # sql = "INSERT INTO updates VALUES (%s, %s);"
+            # self.cur.execute(sql, (self.org.id, "DONE",))
+            # self.conn.commit()
+            self.cur.close()
+            self.conn.close()
+            self.logger.info("Closed Database Connection")
+
         self.logger.info("Closed Driver - Scraper")

@@ -1,8 +1,30 @@
 import hashlib
 import re
 from datetime import datetime, timedelta
+from urllib.parse import urlparse, urlunparse
 
 # A list of helper functions used in the webscraper
+
+def normalize_url(url):
+    parsed = urlparse(url)
+
+    # Remove 'www.' if present
+    netloc = parsed.netloc
+    if netloc.startswith("www."):
+        netloc = netloc[4:]
+
+    # Remove query, fragment, and trailing slash from path
+    clean_path = parsed.path.rstrip('/')
+
+    # Reconstruct cleaned URL
+    cleaned_url = urlunparse((
+        parsed.scheme,
+        netloc,
+        clean_path,
+        '', '', ''  # params, query, fragment
+    ))
+
+    return cleaned_url
 
 def hashText(text):
     """Return a string's SHA-256 hash."""
