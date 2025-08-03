@@ -42,5 +42,6 @@ export const EventsSchema = gql`
     acceptEvents(ids: [ID]): Boolean
     pendEvents(ids: [ID]): Boolean
     deleteAllEvents: Boolean
+    importEvents(csv: String!): Boolean
   }
 `

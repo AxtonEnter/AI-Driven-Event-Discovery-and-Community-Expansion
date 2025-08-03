@@ -140,3 +140,9 @@ export const DELETE_ALL_EVENTS = gql`
     deleteAllEvents
   }
 `;
+
+export const IMPORT_EVENTS = gql`
+  mutation ImportEvents($csv: String!) {
+    importEvents(csv: $csv)
+  }
+`;

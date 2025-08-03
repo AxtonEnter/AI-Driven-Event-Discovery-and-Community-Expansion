@@ -1,5 +1,6 @@
+import { ApolloContext } from "../context.js";
 import { EventsRow } from "../db/tables.js";
-import { acceptEvent, acceptEvents, deleteAllEvents, EventFilter, getEvents, pendEvent, pendEvents, rejectEvent, rejectEvents } from "../repositories/eventsRepo.js"
+import { acceptEvent, acceptEvents, deleteAllEvents, EventFilter, getEvents, insertEventsFromCsv, pendEvent, pendEvents, rejectEvent, rejectEvents } from "../repositories/eventsRepo.js"
 import { getOrganizationByID, getOrganizationsIDsNamesUrls, MinimalOrganizationsRow } from "../repositories/organizationRepo.js";
 import { getTagsByEvent } from "../repositories/TagRepo.js";
 import { getUserByUsername } from "../repositories/userRepo.js";
@@ -93,6 +94,12 @@ export const EventsResolver = {
       _parent: any,
       _args: any) => {
         return await deleteAllEvents();
-    }
+    },
+    importEvents: async (
+      _parent: any,
+      args: {csv: string},
+      context: ApolloContext) => {
+        return await insertEventsFromCsv(args.csv, context.user.username).then(() => true);
+    },
   }
 }

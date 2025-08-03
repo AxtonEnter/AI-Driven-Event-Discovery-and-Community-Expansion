@@ -5,11 +5,12 @@ import { EventItem } from './types/Event.js';
 import { EventRow } from './common/event/EventRow.js';
 import { SearchFilterOptions } from './common/search/SearchFilterOptions.js';
 import { useLazyQuery, useMutation } from '@apollo/client';
-import { GET_EVENTS } from './queries/eventQueries.js';
+import { GET_EVENTS, IMPORT_EVENTS } from './queries/eventQueries.js';
 import RequestWrapper from './common/RequestWrapper.js';
 import { CsvUpload } from './common/csv/CsvUpload.js';
 import { useState, useEffect } from 'react';
 import { IMPORT_ORGANIZATION_CSV } from './queries/organizationQueries.js';
+import { EventCsvUpload } from './common/csv/EventCsvUpload.js';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -37,12 +38,14 @@ function Events() {
   const [getEvents, getEventsResult] = useLazyQuery(GET_EVENTS, { pollInterval: 2000 });
 
   const [importOrgCsv, importOrgCsvResult] = useMutation(IMPORT_ORGANIZATION_CSV);
+  const [importEventCsv, importEventCsvResult] = useMutation(IMPORT_EVENTS);
 
   //getEvents();
 
   const [eventsPanel, setEventsPanel] = useState<number>(0);
   const [selectedEvents, setSelectedEvents] = useState<EventItem[]>([]);
   const [importSnackbarOpen, setImportSnackbarOpen] = useState<boolean>(false);
+  const [eventImportSnackbarOpen, setEventImportSnackbarOpen] = useState<boolean>(false);
 
   function handleSelect(event: EventItem) {
     setSelectedEvents((prev: EventItem[]) =>
@@ -57,12 +60,23 @@ function Events() {
     }
   }, [importOrgCsvResult.data]);
 
+  // Show Snackbar when importEventCsvResult.data changes (i.e., event import finishes successfully)
+  useEffect(() => {
+    if (importEventCsvResult.data) {
+      setEventImportSnackbarOpen(true);
+    }
+  }, [importEventCsvResult.data]);
+
   return (
     <Page>
       <Box>
         <CsvUpload result={importOrgCsvResult} handleUpload={async function (file: File): Promise<void> {
-          console.log("begin upload");
+          console.log("begin upload: orgs");
           importOrgCsv({ variables: { csv: await file.text() } });
+        }} />
+        <EventCsvUpload onFileSelected={async function (file: File): Promise<void> {
+          console.log("begin upload: events");
+          importEventCsv({ variables: { csv: await file.text() } });
         }} />
         <SearchFilterOptions selectedEvents={selectedEvents} query={getEvents} />
       </Box>
@@ -133,6 +147,12 @@ function Events() {
         autoHideDuration={6000}
         onClose={() => setImportSnackbarOpen(false)}
         message="Import successful. Engaging Web Scraper..."
+      />
+      <Snackbar
+        open={eventImportSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setEventImportSnackbarOpen(false)}
+        message="Event CSV import successful."
       />
     </Page >
   )
