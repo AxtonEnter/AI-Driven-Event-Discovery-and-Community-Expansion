@@ -1,6 +1,6 @@
 import './App.css'
 import { Page } from './common/Page.js'
-import { Box, Snackbar, Tab, Table, TableBody, TableCell, TableContainer, TableHead, Tabs } from '@mui/material'
+import { Box, Button, Snackbar, Tab, Table, TableBody, TableCell, TableContainer, TableHead, Tabs } from '@mui/material'
 import { EventItem } from './types/Event.js';
 import { EventRow } from './common/event/EventRow.js';
 import { SearchFilterOptions } from './common/search/SearchFilterOptions.js';
@@ -11,6 +11,7 @@ import { CsvUpload } from './common/csv/CsvUpload.js';
 import { useState, useEffect } from 'react';
 import { IMPORT_ORGANIZATION_CSV } from './queries/organizationQueries.js';
 import { EventCsvUpload } from './common/csv/EventCsvUpload.js';
+import { saveAs } from 'file-saver';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -66,6 +67,35 @@ function Events() {
       setEventImportSnackbarOpen(true);
     }
   }, [importEventCsvResult.data]);
+
+  // Export accepted events as CSV
+  function exportAcceptedEventsCsv() {
+    const accepted = getEventsResult.data?.events.accepted;
+    if (!accepted || accepted.length === 0) return;
+
+    // Define CSV headers and fields to export
+    const headers = ["id", "organization", "url", "title", "text", "images", "status"];
+    const csvRows = [
+      headers.join(","),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ...accepted.map((event: any) =>
+        headers.map(h => {
+          // eslint-disable-next-line prefer-const
+          let val = event[h];
+          if (Array.isArray(val)) {
+            return `"${val.join(';').replace(/"/g, '""')}"`;
+          }
+          if (typeof val === "string") {
+            return `"${val.replace(/"/g, '""')}"`;
+          }
+          return val ?? "";
+        }).join(",")
+      )
+    ];
+    const csvContent = csvRows.join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, "accepted_events.csv");
+  }
 
   return (
     <Page>
@@ -141,6 +171,15 @@ function Events() {
           </TableContainer>
         </RequestWrapper>
       </Box>
+      <Button
+        color="success"
+        variant="outlined"
+        sx={{ ml: 2 }}
+        onClick={exportAcceptedEventsCsv}
+        disabled={!getEventsResult.data?.events.accepted?.length}
+      >
+        Export Accepted Events CSV
+      </Button>
 
       <Snackbar
         open={importSnackbarOpen}
