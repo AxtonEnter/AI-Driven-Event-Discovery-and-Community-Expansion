@@ -19,6 +19,6 @@ resource "aws_instance" "model_server" {
               EOF                     
   
    tags = {
-     Name = "model server"
+     Name = "Model Server"
    }                  
  }
