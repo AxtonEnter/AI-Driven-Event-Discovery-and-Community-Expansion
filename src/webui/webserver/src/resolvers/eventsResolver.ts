@@ -1,7 +1,7 @@
 import { ApolloContext } from "../context.js";
 import { EventsRow } from "../db/tables.js";
 import { acceptEvent, acceptEvents, deleteAllEvents, EventFilter, getEvents, insertEventsFromCsv, pendEvent, pendEvents, rejectEvent, rejectEvents } from "../repositories/eventsRepo.js"
-import { getOrganizationByID, getOrganizationsIDsNamesUrls, MinimalOrganizationsRow } from "../repositories/organizationRepo.js";
+import { getOrganizationByCMSID, getOrganizationByID, getOrganizationsIDsNamesUrls, MinimalOrganizationsRow } from "../repositories/organizationRepo.js";
 import { getTagsByEvent } from "../repositories/TagRepo.js";
 import { getUserByUsername } from "../repositories/userRepo.js";
 
@@ -31,7 +31,7 @@ export const EventsResolver = {
     organization: async (
       parent: EventsRow,
       _args: any) => {
-        return parent.organization && await getOrganizationByID(parent.organization);
+        return parent.organization && await getOrganizationByCMSID(parent.organization);
     },
     tags: async (
       parent: EventsRow,

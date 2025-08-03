@@ -10,7 +10,7 @@ export interface EventsRow {
   statuschangedat?: Date;
   rejectedreason?: string;
   user?: string;
-  organization?: number;
+  organization?: string;
 }
 
 export interface EventsTagsRow {
@@ -26,7 +26,7 @@ export interface OrganizationsRow {
   org_url: string;
   org_events_url?: string;
   region?: string;
-  cms_id?: number;
+  cms_id?: string;
 }
 
 export interface RegionsRow {

@@ -7,6 +7,10 @@ export async function getOrganizationByID(id: number): Promise<OrganizationsRow 
   return await knex("organizations").select().where({ id }).first();
 }
 
+export async function getOrganizationByCMSID(cmsId: string): Promise<OrganizationsRow | undefined> {
+  return await knex("organizations").select().where({ cms_id: cmsId }).first();
+}
+
 export async function getOrganizations(): Promise<OrganizationsRow[]> {
   return await knex("organizations").select();
 }
