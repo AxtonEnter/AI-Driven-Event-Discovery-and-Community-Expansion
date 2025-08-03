@@ -10,13 +10,7 @@ resource "aws_instance" "web_scraper_server" {
    ami           = var.webscraper_ami
    instance_type = var.instance_type
    key_name      = "${local.aws_key}"
-   user_data = <<-EOF
-              <powershell>
-              Set-Location -Path "C:\Scraper"
-              python .\main.py
-              </powershell>
-              <persist>true</persist>
-              EOF              
+   user_data = file("${path.path.module}/ScraperSart.ps1")
   
    tags = {
      Name = "Webscraper Server"

@@ -10,13 +10,7 @@ resource "aws_instance" "model_server" {
    ami           = var.model_ami
    instance_type = var.instance_type
    key_name      = "${local.aws_key}"
-   user_data = <<-EOF
-              <powershell>
-              Set-Location -Path "C:\Users\Administrator\Model\"
-              python predict_events.py
-              </powershell>
-              <persist>true</persist>
-              EOF                     
+   user_data = file("${path.path.module}/ScraperSart.ps1")               
   
    tags = {
      Name = "Model Server"

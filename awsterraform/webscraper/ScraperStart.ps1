@@ -1,0 +1,1 @@
+#previous startup script was located here but did not work
