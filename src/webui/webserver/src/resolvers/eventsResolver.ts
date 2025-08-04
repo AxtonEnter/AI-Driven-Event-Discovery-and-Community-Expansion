@@ -41,8 +41,9 @@ export const EventsResolver = {
     images: async (
       parent: EventsRow,
       _args: any) => {
-        var imagesStringFixed = parent.images ? parent.images.substring(1, parent.images.length - 1) : [];
-        return parent.images ? imagesStringFixed : [];
+        // var imagesStringFixed = parent.images ? parent.images.substring(1, parent.images.length - 1) : [];
+        // return parent.images ? imagesStringFixed : [];
+        return [];
     }
   },
 
