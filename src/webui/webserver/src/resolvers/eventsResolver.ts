@@ -38,6 +38,11 @@ export const EventsResolver = {
       _args: any) => {
         return await getTagsByEvent(parent.id);
     },
+    images: async (
+      parent: EventsRow,
+      _args: any) => {
+        return parent.images ? JSON.parse(parent.images) : [];
+    }
   },
 
   Query: {
