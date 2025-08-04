@@ -1,15 +1,17 @@
 import './App.css'
 import { Page } from './common/Page.js'
-import { Box, Snackbar, Tab, Table, TableBody, TableCell, TableContainer, TableHead, Tabs } from '@mui/material'
+import { Box, Button, Snackbar, Tab, Table, TableBody, TableCell, TableContainer, TableHead, Tabs } from '@mui/material'
 import { EventItem } from './types/Event.js';
 import { EventRow } from './common/event/EventRow.js';
 import { SearchFilterOptions } from './common/search/SearchFilterOptions.js';
 import { useLazyQuery, useMutation } from '@apollo/client';
-import { GET_EVENTS } from './queries/eventQueries.js';
+import { GET_EVENTS, IMPORT_EVENTS } from './queries/eventQueries.js';
 import RequestWrapper from './common/RequestWrapper.js';
 import { CsvUpload } from './common/csv/CsvUpload.js';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IMPORT_ORGANIZATION_CSV } from './queries/organizationQueries.js';
+import { EventCsvUpload } from './common/csv/EventCsvUpload.js';
+import { saveAs } from 'file-saver';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -37,26 +39,74 @@ function Events() {
   const [getEvents, getEventsResult] = useLazyQuery(GET_EVENTS, { pollInterval: 2000 });
 
   const [importOrgCsv, importOrgCsvResult] = useMutation(IMPORT_ORGANIZATION_CSV);
+  const [importEventCsv, importEventCsvResult] = useMutation(IMPORT_EVENTS);
 
   //getEvents();
 
   const [eventsPanel, setEventsPanel] = useState<number>(0);
   const [selectedEvents, setSelectedEvents] = useState<EventItem[]>([]);
   const [importSnackbarOpen, setImportSnackbarOpen] = useState<boolean>(false);
+  const [eventImportSnackbarOpen, setEventImportSnackbarOpen] = useState<boolean>(false);
 
   function handleSelect(event: EventItem) {
     setSelectedEvents((prev: EventItem[]) =>
       prev.includes(event) ? prev.filter((e) => e !== event) : [...prev, event]
     );
-    setImportSnackbarOpen(true);
+  }
+
+  // Show Snackbar when importOrgCsvResult.data changes (i.e., import finishes successfully)
+  useEffect(() => {
+    if (importOrgCsvResult.data) {
+      setImportSnackbarOpen(true);
+    }
+  }, [importOrgCsvResult.data]);
+
+  // Show Snackbar when importEventCsvResult.data changes (i.e., event import finishes successfully)
+  useEffect(() => {
+    if (importEventCsvResult.data) {
+      setEventImportSnackbarOpen(true);
+    }
+  }, [importEventCsvResult.data]);
+
+  // Export accepted events as CSV
+  function exportAcceptedEventsCsv() {
+    const accepted = getEventsResult.data?.events.accepted;
+    if (!accepted || accepted.length === 0) return;
+
+    // Define CSV headers and fields to export
+    const headers = ["id", "organization", "url", "title", "text", "images", "status"];
+    const csvRows = [
+      headers.join(","),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ...accepted.map((event: any) =>
+        headers.map(h => {
+          // eslint-disable-next-line prefer-const
+          let val = event[h];
+          if (Array.isArray(val)) {
+            return `"${val.join(';').replace(/"/g, '""')}"`;
+          }
+          if (typeof val === "string") {
+            return `"${val.replace(/"/g, '""')}"`;
+          }
+          return val ?? "";
+        }).join(",")
+      )
+    ];
+    const csvContent = csvRows.join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, "accepted_events.csv");
   }
 
   return (
     <Page>
       <Box>
         <CsvUpload result={importOrgCsvResult} handleUpload={async function (file: File): Promise<void> {
-          console.log("begin upload");
+          console.log("begin upload: orgs");
           importOrgCsv({ variables: { csv: await file.text() } });
+        }} />
+        <EventCsvUpload onFileSelected={async function (file: File): Promise<void> {
+          console.log("begin upload: events");
+          importEventCsv({ variables: { csv: await file.text() } });
         }} />
         <SearchFilterOptions selectedEvents={selectedEvents} query={getEvents} />
       </Box>
@@ -121,12 +171,27 @@ function Events() {
           </TableContainer>
         </RequestWrapper>
       </Box>
+      <Button
+        color="success"
+        variant="outlined"
+        sx={{ ml: 2 }}
+        onClick={exportAcceptedEventsCsv}
+        disabled={!getEventsResult.data?.events.accepted?.length}
+      >
+        Export Accepted Events CSV
+      </Button>
 
       <Snackbar
         open={importSnackbarOpen}
         autoHideDuration={6000}
         onClose={() => setImportSnackbarOpen(false)}
         message="Import successful. Engaging Web Scraper..."
+      />
+      <Snackbar
+        open={eventImportSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setEventImportSnackbarOpen(false)}
+        message="Event CSV import successful."
       />
     </Page >
   )

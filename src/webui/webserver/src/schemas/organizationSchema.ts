@@ -9,7 +9,7 @@ export const OrganizationSchema = gql`
     org_url: String!
     org_events_url: String
     region: Region
-    cms_id: Int
+    cms_id: String
   }
 
   type Query {

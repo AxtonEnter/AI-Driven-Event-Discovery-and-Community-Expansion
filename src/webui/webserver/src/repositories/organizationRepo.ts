@@ -7,6 +7,10 @@ export async function getOrganizationByID(id: number): Promise<OrganizationsRow 
   return await knex("organizations").select().where({ id }).first();
 }
 
+export async function getOrganizationByCMSID(cmsId: string): Promise<OrganizationsRow | undefined> {
+  return await knex("organizations").select().where({ cms_id: cmsId }).first();
+}
+
 export async function getOrganizations(): Promise<OrganizationsRow[]> {
   return await knex("organizations").select();
 }
@@ -120,7 +124,11 @@ async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], 
 
 export async function insertCsvOrganizations(organizations: CsvOrganizationRow[]) {
   console.log("insert")
-  await knex("organizations").insert(await convertCsvOrganizationsToPartials(organizations, "add"));
+  // Insert and ignore rows that violate constraints (e.g., unique)
+  await knex("organizations")
+    .insert(await convertCsvOrganizationsToPartials(organizations, "add"))
+    .onConflict() // no columns = ignore all conflicts
+    .ignore();
 }
 
 export async function deleteOrganization(id: number): Promise<boolean> {

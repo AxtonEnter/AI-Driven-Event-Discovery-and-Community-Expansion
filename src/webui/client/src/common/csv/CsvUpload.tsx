@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 
 type CsvUploadProps = {
     handleUpload: (file: File) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result: MutationResult<any>;
 }
 
@@ -16,10 +17,15 @@ export function CsvUpload(props: CsvUploadProps) {
     }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log("handleFileChange", e);
         const files = e.target.files;
         if (files && files.length > 0) {
+            console.log("Files selected:", files);
             setFile(files[0]);
-            if (file) props.handleUpload(file);
+            if (file) {
+                console.log("File selected:", file.name);
+                props.handleUpload(file);
+            }
         }
         else {
             setFile(null);

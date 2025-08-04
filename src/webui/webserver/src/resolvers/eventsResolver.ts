@@ -1,6 +1,7 @@
+import { ApolloContext } from "../context.js";
 import { EventsRow } from "../db/tables.js";
-import { acceptEvent, acceptEvents, EventFilter, getEvents, pendEvent, pendEvents, rejectEvent, rejectEvents } from "../repositories/eventsRepo.js"
-import { getOrganizationByID, getOrganizationsIDsNamesUrls, MinimalOrganizationsRow } from "../repositories/organizationRepo.js";
+import { acceptEvent, acceptEvents, deleteAllEvents, EventFilter, getEvents, insertEventsFromCsv, pendEvent, pendEvents, rejectEvent, rejectEvents } from "../repositories/eventsRepo.js"
+import { getOrganizationByCMSID, getOrganizationByID, getOrganizationsIDsNamesUrls, MinimalOrganizationsRow } from "../repositories/organizationRepo.js";
 import { getTagsByEvent } from "../repositories/TagRepo.js";
 import { getUserByUsername } from "../repositories/userRepo.js";
 
@@ -30,7 +31,7 @@ export const EventsResolver = {
     organization: async (
       parent: EventsRow,
       _args: any) => {
-        return parent.organization && await getOrganizationByID(parent.organization);
+        return parent.organization && await getOrganizationByCMSID(parent.organization);
     },
     tags: async (
       parent: EventsRow,
@@ -92,11 +93,13 @@ export const EventsResolver = {
     deleteAllEvents: async (
       _parent: any,
       _args: any) => {
-        return await getEvents().then(async (events) => {
-          if (events.length === 0) return false;
-          const result = await Promise.all(events.map(event => pendEvent(event.id)));
-          return result.length > 0;
-        });
-    }
+        return await deleteAllEvents();
+    },
+    importEvents: async (
+      _parent: any,
+      args: {csv: string},
+      context: ApolloContext) => {
+        return await insertEventsFromCsv(args.csv, context.user.username).then(() => true);
+    },
   }
 }

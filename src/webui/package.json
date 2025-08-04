@@ -31,8 +31,10 @@
     "compression": "^1.8.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "csv-parse": "^6.1.0",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
+    "file-saver": "^2.0.5",
     "fs": "^0.0.1-security",
     "graphql-scalars": "^1.24.2",
     "graphql-tag": "^2.12.6",
@@ -53,6 +55,7 @@
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/express-session": "^1.18.2",
+    "@types/file-saver": "^2.0.7",
     "@types/morgan": "^1.9.10",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38"

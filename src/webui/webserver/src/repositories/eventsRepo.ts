@@ -1,5 +1,7 @@
+import { title } from "process";
 import { knex } from "../db/index.js";
 import { EventsRow } from "../db/tables.js";
+import { parse } from "csv-parse/sync";
 
 export interface EventFilter {
   url?: string;
@@ -12,7 +14,7 @@ export interface EventFilter {
 export async function getEvents(searchText?: string, filters?: EventFilter): Promise<EventsRow[]> {
   return await knex("events")
   .select(`events.*`)
-    .leftJoin(knex.raw(`"organizations" ON "organizations".id = "organization"`))
+    .leftJoin(knex.raw(`"organizations" ON "organizations".cms_id = "organization"`))
     .where((query) => {
       if (searchText) {
         query.where((subQuery) => {
@@ -70,4 +72,35 @@ export async function pendEvents(ids: number[]): Promise<void> {
 export async function deleteAllEvents(): Promise<boolean> {
   const result = await knex("events").delete();
   return result > 0;
+}
+
+/**
+ * Insert multiple events from a CSV string.
+ * CSV headers: orgId,url,rawText,images
+ * images is a stringified array.
+ */
+export async function insertEventsFromCsv(csv: string, username?: string): Promise<void> {
+  // Parse CSV
+  const records = parse(csv, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true
+  });
+
+  // Map CSV fields to events table fields
+  const eventsToInsert = records.map((row: any) => ({
+    organization: Number(row.orgId),
+    title: row.url, // Assuming title is the same as url for now
+    url: row.url,
+    text: row.rawText,
+    html: "", // Assuming html is not provided in CSV for now
+    images: JSON.stringify(row.images), // store as JSON array
+    user: username || null, // Set user if provided, otherwise null
+  }));
+
+  // Insert, ignore rows that violate constraints
+  await knex("events")
+    .insert(eventsToInsert)
+    .onConflict()
+    .ignore();
 }
