@@ -11,6 +11,7 @@ export interface EventsRow {
   rejectedreason?: string;
   user?: string;
   organization?: number;
+  images: string;
 }
 
 export interface EventsTagsRow {

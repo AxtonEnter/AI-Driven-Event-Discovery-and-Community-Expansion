@@ -14,6 +14,7 @@ export const EventsSchema = gql`
     user: User
     organization: Organization
     tags: [Tag]
+    images: [String]
   }
 
   input EventFilter {

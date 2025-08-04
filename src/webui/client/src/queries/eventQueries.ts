@@ -10,6 +10,7 @@ export const GET_EVENTS = gql`
         title
         html
         text
+        images
         addedat
         status
         statuschangedat
@@ -41,6 +42,7 @@ export const GET_EVENTS = gql`
         title
         html
         text
+        images
         addedat
         statuschangedat
         rejectedreason
@@ -71,6 +73,7 @@ export const GET_EVENTS = gql`
         title
         html
         text
+        images
         addedat
         statuschangedat
         rejectedreason
