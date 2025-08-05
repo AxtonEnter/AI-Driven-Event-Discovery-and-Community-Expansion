@@ -74,7 +74,7 @@ class WebScraper:
         elif response == 404:
             self.logger.error(f"Invalid URL for org {self.org.id}: {self.org.url}")
         else:
-            self.org.finalUrl = response
+            self.org.setFinalUrl(response)
 
         return response
     
@@ -278,11 +278,12 @@ class WebScraper:
             href = link['href']
             fullUrl = urljoin(self.org.finalUrl, href)
             normalizedFullUrl = utils.normalize_url(fullUrl)
+
             # self.logger.info(f"Found Link: {fullUrl}")
             # if full_url.startswith(self.org.url):
             #     self.logger.info(f"Link is on the same site: {self.org.url}")
 
-            if normalizedFullUrl.startswith(self.org.normalizedUrl) and normalizedFullUrl not in visited:
+            if normalizedFullUrl.startswith(self.org.normalizedFinalUrl) and normalizedFullUrl not in visited:
                 await self.crawlSite(fullUrl, visited)
 
         return visited

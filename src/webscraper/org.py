@@ -7,7 +7,12 @@ class Org:
         self.finalUrl = None
         self.governmentSite = False
         self.normalizedUrl = utils.normalize_url(url)
+        self.normalizedFinalUrl = None
         self.eventurl = eventurl
+
+    def setFinalUrl(self, finalUrl: str):
+        self.finalUrl = finalUrl
+        self.normalizedFinalUrl = utils.normalize_url(finalUrl)
 
     def __repr__(self):
         return f"Org(id={self.id}, url='{self.url}', eventurl='{self.eventurl}')"
