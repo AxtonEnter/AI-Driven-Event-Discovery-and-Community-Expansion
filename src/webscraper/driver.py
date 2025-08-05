@@ -123,22 +123,7 @@ class PlaywrightDriver:
     async def interceptRequest(self, route, request, targetUrl):
         """Block specific resource types from loading. Also blocks routing to other pages."""
         normalizedUrl = utils.normalize_url(request.url)
-        normalizedTargetUrl = utils.normalize_url(targetUrl)
-        # if normalizedUrl == normalizedTargetUrl:
-        #     if request.resource_type in ["image", "stylesheet", "font", "media"]:
-        #         await route.abort()  # Block unwanted resource types
-        #     else:
-        #         await route.continue_()  # Allow other requests for the main URL
-        # else:
-        #     # self.logger.info(f"Intercepted: {normalizedUrl}")
-        #     await route.abort()  # Block all other
 
-        # if ".gov" in normalizedUrl:
-        #     self.logger.warning(f".gov site: {normalizedUrl}")
-        #     self.governmentRedirect = True
-        #     await route.abort()
-        #     return
-        
         # Dont allow .gov sites with proxy
         if self.proxy is not None and ".gov" in normalizedUrl:
             self.logger.warning(f".gov site blocked by proxy: {normalizedUrl}")

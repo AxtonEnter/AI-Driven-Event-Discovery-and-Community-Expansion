@@ -14,7 +14,7 @@ logger = logging.getLogger("SNS-Scraper")
 # Scrape Request SQS Queue URL
 SCRAPE_REQUEST_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/563583517916/scrape-requests"
 
-DB_HOST = "test-database-jdb.c8v60oyuezl3.us-east-1.rds.amazonaws.com"
+DB_HOST = "test-db-prod.cqvw2k0sgq1i.us-east-1.rds.amazonaws.com"
 DB_NAME = "postgres"
 DB_USER = "username123"
 DB_PASSWORD = "password123"

@@ -13,11 +13,13 @@ from org import Org
 
 PAGE_DATA_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/563583517916/page-data"
 
-DB_HOST = "test-database-jdb.c8v60oyuezl3.us-east-1.rds.amazonaws.com"
+DB_HOST = "test-db-prod.cqvw2k0sgq1i.us-east-1.rds.amazonaws.com"
 DB_NAME = "postgres"
 DB_USER = "username123"
 DB_PASSWORD = "password123"
 DB_PORT = 5432
+
+HASH_ENABLE = True  # Enable or disable hashing for page content
 
 
 class WebScraper:
@@ -202,34 +204,39 @@ class WebScraper:
         # print(images)
 
         if not self.testMode:
-            messageRequired = True  # Always send to model for testing
-            # messageRequired = False
-            # # Check page hash
-            # textHash = utils.hashText(text)
-            # sql = "SELECT * FROM url_hashes WHERE url=%s"
-            # self.cur.execute(sql, (url,))
-            # response = self.cur.fetchone()
+            messageRequired = True
+            if HASH_ENABLE:
+                try:
+                    messageRequired = False
+                    # Check page hash
+                    textHash = utils.hashText(text)
+                    sql = "SELECT * FROM url_hashes WHERE url=%s"
+                    self.cur.execute(sql, (url,))
+                    response = self.cur.fetchone()
 
-            # if response == None or response == []: # New Page (No Hash)
-            #     self.logger.info("New Page - No Hash Stored: Sending to Model")
-            #     messageRequired = True
-            #     sql = "INSERT INTO url_hashes VALUES (%s, %s);"
-            #     self.cur.execute(sql, (url, textHash,))
-            #     self.conn.commit()
-            # else:
-            #     if response[1] != textHash: # Page has changed
-            #         self.logger.info("Page has changed - Updating Hash: Sending to Model")
-            #         messageRequired = True
-            #         sql = "UPDATE url_hashes SET textHash = %s WHERE url = %s;"
-            #         self.cur.execute(sql, (textHash, url,))
-            #         self.conn.commit()
+                    if response == None or response == []: # New Page (No Hash)
+                        self.logger.info("New Page - No Hash Stored: Sending to Model")
+                        messageRequired = True
+                        sql = "INSERT INTO url_hashes VALUES (%s, %s);"
+                        self.cur.execute(sql, (url, textHash,))
+                        self.conn.commit()
+                    else:
+                        if response[1] != textHash: # Page has changed
+                            self.logger.info("Page has changed - Updating Hash: Sending to Model")
+                            messageRequired = True
+                            sql = "UPDATE url_hashes SET textHash = %s WHERE url = %s;"
+                            self.cur.execute(sql, (textHash, url,))
+                            self.conn.commit()
 
-            #         # Page has changed (send to event queue)
-            #         # compressed = zlib.compress(text.encode('utf-8'), level=-1)
-            #         pass
-            #     else: # Page has not changed
-            #         self.logger.info("Page has not changed")
-            #         pass
+                            # Page has changed (send to event queue)
+                            # compressed = zlib.compress(text.encode('utf-8'), level=-1)
+                            pass
+                        else: # Page has not changed
+                            self.logger.info("Page has not changed")
+                            pass
+                except Exception as e:
+                    self.logger.error(f"Error checking page hash: {e}")
+                    messageRequired = True
             
             if messageRequired:
                 # Send SNS 
