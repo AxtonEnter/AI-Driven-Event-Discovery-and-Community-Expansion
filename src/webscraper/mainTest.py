@@ -16,7 +16,10 @@ Orgs = [
     # Org(2, "https://recordarchive.com/"),
     # Org(3, "https://www.codeninjas.com/tx-san-antonio-stone-oak-1"),
     # Org(4, "https://rgmc.ticketleap.com/"),
-    Org(5, "https://www.punsonline.com/"),
+    # Org(5, "https://www.punsonline.com/"),
+    # Org(76, "https://www.aberdeencentre.com")
+    Org(77, "http://www.abelardschool.org/")
+    # Org(5, "https://activekidszone.com/")
     # Org(6, "https://www.pumcny.org/"),
     # Org(7, "https://www.stjohnsliving.org/")
 ]
@@ -46,34 +49,34 @@ testUrls = testUrls[20:40]
 testOrgs = [Org(i, url) for i, url in enumerate(testUrls, start=1)]
 
 async def testOrgList():
-    manager = scraperManager(concurrentScrapers=10, orgs=testOrgs, proxyEnable=True, testMode=False)
+    manager = scraperManager(concurrentScrapers=10, userId="none", orgs=testOrgs, proxyEnable=True, testMode=False)
     await manager.concurrentCrawl()
 
 async def testScraperManager():
-    manager = scraperManager(concurrentScrapers=7, orgs=Orgs, proxyEnable=False, testMode=True)
+    manager = scraperManager(concurrentScrapers=7, userId="none", orgs=Orgs, proxyEnable=False, testMode=True)
     await manager.concurrentCrawl()
 
 async def testScraperManagerNoProxy():
-    manager = scraperManager(concurrentScrapers=7, orgs=Orgs, proxyEnable=False)
+    manager = scraperManager(concurrentScrapers=7, userId="none", orgs=Orgs, proxyEnable=False)
     await manager.concurrentCrawl()
 
 async def testScraperManagerSingle():
     org = Org(5, "https://www.punsonline.com/")
-    manager = scraperManager(concurrentScrapers=1, orgs=[org], proxyEnable=True)
+    manager = scraperManager(concurrentScrapers=1, userId="none", orgs=[org], proxyEnable=True)
     await manager.concurrentCrawl()
 
 async def testScraperManagerSetup():
     org = Org(1, "https://shortsvillereindeer.com/")
-    manager = scraperManager(concurrentScrapers=1, orgs=[org], proxyEnable=True)
+    manager = scraperManager(concurrentScrapers=1, userId="none", orgs=[org], proxyEnable=True)
     await manager.concurrentCrawl()
 
 async def multiEventPageTest():
     org = Org(2, "https://recordarchive.com/events-calendar/")
-    manager = scraperManager(concurrentScrapers=1, orgs=[org], proxyEnable=True)
+    manager = scraperManager(concurrentScrapers=1, userId="none", orgs=[org], proxyEnable=True)
     await manager.concurrentCrawlMulti()
 
 async def ChrisTest():
-    manager = scraperManager(concurrentScrapers=3, orgs=ChrisOrgs, proxyEnable=True, testMode=True)
+    manager = scraperManager(concurrentScrapers=3, userId="none", orgs=ChrisOrgs, proxyEnable=True, testMode=True)
     await manager.concurrentCrawl()
 
 async def main():

@@ -73,7 +73,8 @@ class scraperManager:
             scraper = WebScraper(driver=self.driver, org=org, userId=self.userId, maxPages=50, sleepTime=1, logger=individualLogger, testMode=testMode)
             self.scrapers.append(scraper)
 
-        self.logger.info(f"Scraper Manager Initialized, concurrentScrapers: {concurrentScrapers}, orgs: {orgs}, org count: {len(orgs)}, proxy: {self.proxyEnable}")
+        self.logger.info(f"Scrape Request From USER: {userId}, concurrentScrapers: {concurrentScrapers}, org count: {len(orgs)}, proxy: {self.proxyEnable}")
+        self.logger.info(f"Scrape Request Orgs:{orgs}")
 
 
     async def concurrentCrawl(self):

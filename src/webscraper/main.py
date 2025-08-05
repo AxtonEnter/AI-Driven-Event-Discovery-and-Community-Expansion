@@ -58,7 +58,7 @@ async def process_message(message):
         orgIds = body.get("orgs", [])
         userId = body.get("user", [])
 
-        logger.info(f"User: {userId} requested orgs: {orgIds}")
+        print(f"User: {userId} requested orgs: {orgIds}")
         # Database Link
         conn = psycopg2.connect(
             host=DB_HOST,
