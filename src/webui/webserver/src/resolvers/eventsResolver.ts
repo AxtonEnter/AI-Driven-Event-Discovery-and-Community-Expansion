@@ -43,7 +43,7 @@ export const EventsResolver = {
       _args: any) => {
         // var imagesStringFixed = parent.images ? parent.images.substring(1, parent.images.length - 1) : [];
         // return parent.images ? imagesStringFixed : [];
-        return [];
+        return parent.image_list;
     }
   },
 

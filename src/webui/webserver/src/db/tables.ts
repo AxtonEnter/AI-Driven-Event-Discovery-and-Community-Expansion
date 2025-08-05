@@ -12,6 +12,7 @@ export interface EventsRow {
   user?: string;
   images: string;
   organization?: string;
+  image_list?: string[];
 }
 
 export interface EventsTagsRow {
