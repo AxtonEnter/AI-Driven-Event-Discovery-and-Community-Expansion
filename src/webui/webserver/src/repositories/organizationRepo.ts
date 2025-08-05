@@ -90,7 +90,7 @@ async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], 
   return await getRegions().then((regions) => {
     var newRegions: string[] = [];
 
-    console.log("parse")
+    console.log("parse:", username)
 
     csvOrgs.forEach(async (org) => {
       //If add mode and location info exists
