@@ -15,7 +15,7 @@ export async function getEvents(username: string, searchText?: string, filters?:
   return await knex("events")
   .select(`events.*`)
     .leftJoin(knex.raw(`"organizations" ON "organizations".cms_id = "organization"`))
-    .where({user: username})
+    .where('events.user', username)
     .where((query) => {
       if (searchText) {
         query.where((subQuery) => {
