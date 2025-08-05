@@ -11,10 +11,11 @@ export interface EventFilter {
   status?: string;
 }
 
-export async function getEvents(searchText?: string, filters?: EventFilter): Promise<EventsRow[]> {
+export async function getEvents(username: string, searchText?: string, filters?: EventFilter): Promise<EventsRow[]> {
   return await knex("events")
   .select(`events.*`)
     .leftJoin(knex.raw(`"organizations" ON "organizations".cms_id = "organization"`))
+    .where({user: username})
     .where((query) => {
       if (searchText) {
         query.where((subQuery) => {

@@ -15,6 +15,10 @@ export async function getOrganizations(): Promise<OrganizationsRow[]> {
   return await knex("organizations").select();
 }
 
+export async function getOrganizationsByUser(username: string): Promise<OrganizationsRow[]> {
+  return await knex("organizations").select().where({ user: username });
+}
+
 export interface MinimalOrganizationsRow {
   id: string;
   name?: string;
@@ -77,9 +81,10 @@ interface PartialOrganizationsRow {
   org_url: string;
   koa_url: string
   region?: string;
+  user?: string;
 }
 
-async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], onNewRegion: "add" | "leaveNull"): Promise<PartialOrganizationsRow[]> {
+async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], onNewRegion: "add" | "leaveNull", username?: string): Promise<PartialOrganizationsRow[]> {
   var partials: PartialOrganizationsRow[] = [];
 
   return await getRegions().then((regions) => {
@@ -110,7 +115,7 @@ async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], 
         }
       } else {
         //Add the org without a region
-        partials.push({ cms_id: org.cmsId, name: org.accountName, org_url: org.website, koa_url: org.koaUrl });
+        partials.push({ cms_id: org.cmsId, name: org.accountName, org_url: org.website, koa_url: org.koaUrl, user: username });
       }
     });
     //console.log(`partials: \n${partials}`)
@@ -122,11 +127,11 @@ async function convertCsvOrganizationsToPartials(csvOrgs: CsvOrganizationRow[], 
 }
 
 
-export async function insertCsvOrganizations(organizations: CsvOrganizationRow[]) {
+export async function insertCsvOrganizations(organizations: CsvOrganizationRow[], username: string) {
   console.log("insert")
   // Insert and ignore rows that violate constraints (e.g., unique)
   await knex("organizations")
-    .insert(await convertCsvOrganizationsToPartials(organizations, "add"))
+    .insert(await convertCsvOrganizationsToPartials(organizations, "add", username))
     .onConflict() // no columns = ignore all conflicts
     .ignore();
 }

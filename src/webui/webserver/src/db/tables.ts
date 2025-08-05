@@ -28,6 +28,7 @@ export interface OrganizationsRow {
   org_events_url?: string;
   region?: string;
   cms_id?: string;
+  user?: string;
 }
 
 export interface RegionsRow {

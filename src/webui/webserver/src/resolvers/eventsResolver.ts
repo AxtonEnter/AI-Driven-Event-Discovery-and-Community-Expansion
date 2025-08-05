@@ -50,11 +50,12 @@ export const EventsResolver = {
   Query: {
     events: async (
       _parent: any,
-      args: {searchText?: string, filters?: EventFilter}) => {
+      args: {searchText?: string, filters?: EventFilter},
+      context: ApolloContext) => {
         return {
-          pending: await getEvents(args.searchText, {status: "0", ...args.filters}),
-          accepted: await getEvents(args.searchText, {status: "1", ...args.filters}),
-          rejected: await getEvents(args.searchText, {status: "2", ...args.filters}),
+          pending: await getEvents(context.user.username, args.searchText, {status: "0", ...args.filters}),
+          accepted: await getEvents(context.user.username, args.searchText, {status: "1", ...args.filters}),
+          rejected: await getEvents(context.user.username, args.searchText, {status: "2", ...args.filters}),
         };
     },
   },
