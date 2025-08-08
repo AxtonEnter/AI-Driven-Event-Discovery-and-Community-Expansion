@@ -16,6 +16,8 @@ import { EventsSchema } from "./schemas/eventsSchema.js";
 import { RegionSchema } from "./schemas/regionSchema.js";
 import { RegionResolver } from "./resolvers/regionResolver.js";
 import { TagSchema } from "./schemas/tagSchema.js";
+import { UpdatesSchema } from "./schemas/updatesSchema.js";
+import { UpdatesResolver } from "./resolvers/updatesResolver.js";
 
 
 // for custom scalars such as Date
@@ -37,7 +39,8 @@ export const schema = makeExecutableSchema({
     OrganizationSchema,
     EventsSchema,
     RegionSchema,
-    TagSchema
+    TagSchema,
+    UpdatesSchema
   ],
   resolvers: [ 
     resolveFunctions,
@@ -45,6 +48,7 @@ export const schema = makeExecutableSchema({
     UserResolver,
     OrganizationResolver,
     EventsResolver,
-    RegionResolver
+    RegionResolver,
+    UpdatesResolver
   ]
 });

@@ -12,6 +12,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import BusinessIcon from '@mui/icons-material/Business';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import GroupIcon from '@mui/icons-material/Group';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 
 
 type Props = {
@@ -29,8 +30,9 @@ export const Page = ({ children }: Props) => {
           <Stack direction={"row"} alignItems={"center"}>
             <Divider orientation='vertical' sx={{ mx: 2 }} component={"p"} />
 
-            <Button sx={{ height: 60 }} startIcon={<EventNoteIcon />} onClick={() => navigate('/')}>Events</Button>
+            <Button sx={{ height: 60 }} startIcon={<EventNoteIcon />} onClick={() => navigate('/app')}>Events</Button>
             <Button sx={{ height: 60 }} startIcon={<BusinessIcon />} onClick={() => navigate('/app/orgs')}>Organizations</Button>
+            <Button sx={{ height: 60 }} startIcon={<FormatListBulletedIcon />} onClick={() => navigate('/app/updates')}>Updates</Button>
 
             {currentUser.role === "admin" && (
               <Button sx={{ height: 60 }} startIcon={<GroupIcon />} onClick={() => navigate('/app/users')}>Users</Button>

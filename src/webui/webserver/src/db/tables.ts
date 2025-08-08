@@ -53,3 +53,9 @@ export interface UsersRow {
   role?: string;
   password: string;
 }
+
+export interface UpdatesRow {
+  orgId: string;
+  value: string;
+  postedAt: Date;
+}
