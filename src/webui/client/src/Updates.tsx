@@ -14,7 +14,7 @@ export default function Updates() {
       <RequestWrapper2
         result={queryResult}
         render={(data) => {
-          if (data.auditLogs.length === 0) {
+          if (data.updates.length === 0) {
             return (
               <Typography
                 variant="body1"
