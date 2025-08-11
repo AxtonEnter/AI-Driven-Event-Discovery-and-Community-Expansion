@@ -74,7 +74,7 @@ export function EventRow(props: Props) {
       <TableCell style={{ verticalAlign: 'top' }}>
         <Stack direction={"column"} justifyContent={"center"}>
           <div>
-            <a style={{color: "text.secondary"}} href={props.event.url}>{props.event.url}</a>
+            <a style={{color: "text.secondary"}} href={props.event.url} target="_blank" rel="noopener noreferrer">{props.event.url}</a>
           </div>
           <Button startIcon={<EditIcon />} onClick={() => setEditModalOpen(true)}>Edit</Button>
             {showWarningTag && (
