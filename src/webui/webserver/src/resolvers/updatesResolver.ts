@@ -1,10 +1,10 @@
+import { getOrganizationByCMSID } from "../repositories/organizationRepo.js";
 import { getAllUpdates } from "../repositories/updatesRepo.js";
 
 export const UpdatesResolver = {
   Update: {
     organization: async (parent: any, args: any, context: any) => {
-      const { organizationRepo } = context;
-      return await organizationRepo.getOrganizationByCmsId(parent.orgId);
+      return await getOrganizationByCMSID(parent.orgId);
     },
   },
 
