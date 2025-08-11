@@ -34,7 +34,7 @@ export default function Updates() {
               {data.updates.map((update: Update) => (
                 <UpdateRow  
                   key={update.orgId}
-                  postedAt={update.postedAt.toISOString()}
+                  postedAt={new Date(update.postedAt).toISOString()}
                   organization={update.organization?.name || "Unknown Organization"}
                   value={update.value}>
                 </UpdateRow>
